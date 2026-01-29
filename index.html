@@ -1722,7 +1722,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, setDoc, query, where, orderBy, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         // Make getDoc available globally
@@ -1742,6 +1742,8 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        // Use session persistence: login persists only until tab is closed (no auto-login when opening link again)
+        setPersistence(auth, browserSessionPersistence).catch(() => {});
         const db = getFirestore(app);
 
         // Make these available globally
@@ -1764,40 +1766,23 @@
         window.warehouseInventory = {};
         window.workSiteInventory = {};
 
-        // Check and create admin user (without logging in)
+        // Check and create admin user (without ever signing in as admin)
         async function checkAndCreateAdmin() {
             try {
-                // Check if admin user already exists by trying to sign in
-                // If sign in succeeds, user exists and we just sign out
+                // Only try to create: if user exists we get email-already-in-use, no sign-in needed
                 try {
-                    await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-                    // User exists, sign out immediately
+                    await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+                    // New user was created and we are now signed in as them - sign out immediately
                     await signOut(auth);
                     return true;
-                } catch (signInError) {
-                    // If sign in fails, user doesn't exist, so create it
-                    if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/wrong-password') {
-                        // User doesn't exist, create it
-                        try {
-                            await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-                            // Sign out immediately after creation so user must login manually
-                            await signOut(auth);
-                            return true;
-                        } catch (createError) {
-                            // If creation fails, silently handle it
-                            if (createError.code === 'auth/email-already-in-use') {
-                                // User was created between check and creation - this is fine
-                                return true;
-                            }
-                            // Other errors - silently ignore
-                            return false;
-                        }
+                } catch (createError) {
+                    if (createError.code === 'auth/email-already-in-use') {
+                        // Admin already exists - do nothing, never sign in
+                        return true;
                     }
-                    // Other sign in errors - silently ignore
                     return false;
                 }
             } catch (error) {
-                // Any unexpected errors - silently ignore
                 return false;
             }
         }
