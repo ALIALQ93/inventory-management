@@ -1722,7 +1722,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, setDoc, query, where, orderBy, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         // Make getDoc available globally
@@ -1742,8 +1742,8 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        // Use session persistence: login persists only until tab is closed (no auto-login when opening link again)
-        setPersistence(auth, browserSessionPersistence).catch(() => {});
+        // Use local persistence: remember user across sessions (stay logged in after closing browser)
+        setPersistence(auth, browserLocalPersistence).catch(() => {});
         const db = getFirestore(app);
 
         // Make these available globally
@@ -1766,20 +1766,18 @@
         window.warehouseInventory = {};
         window.workSiteInventory = {};
 
-        // Check and create admin user (without ever signing in as admin)
+        // Check and create admin user (optional - only if Firebase allows sign-up; do not run on every load to avoid 400)
         async function checkAndCreateAdmin() {
             try {
-                // Only try to create: if user exists we get email-already-in-use, no sign-in needed
                 try {
                     await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-                    // New user was created and we are now signed in as them - sign out immediately
                     await signOut(auth);
                     return true;
                 } catch (createError) {
                     if (createError.code === 'auth/email-already-in-use') {
-                        // Admin already exists - do nothing, never sign in
                         return true;
                     }
+                    // 400 / OPERATION_NOT_ALLOWED etc: sign-up may be disabled or API restricted - ignore
                     return false;
                 }
             } catch (error) {
@@ -1801,12 +1799,22 @@
                 await signInWithEmailAndPassword(auth, email, password);
                 showLoginAlert('تم تسجيل الدخول بنجاح', 'success');
             } catch (error) {
-                if (error.code === 'auth/user-not-found') {
+                const code = error.code || '';
+                const msg = error.message || '';
+                if (code === 'auth/user-not-found') {
                     showLoginAlert('المستخدم غير موجود', 'error');
-                } else if (error.code === 'auth/wrong-password') {
+                } else if (code === 'auth/wrong-password') {
                     showLoginAlert('كلمة المرور غير صحيحة', 'error');
+                } else if (code === 'auth/invalid-credential') {
+                    showLoginAlert('البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error');
+                } else if (code === 'auth/too-many-requests') {
+                    showLoginAlert('محاولات كثيرة. حاول لاحقاً أو أعد تعيين كلمة المرور', 'error');
+                } else if (code === 'auth/operation-not-allowed') {
+                    showLoginAlert('تسجيل الدخول بالبريد وكلمة المرور غير مفعّل في إعدادات المشروع', 'error');
+                } else if (msg.indexOf('400') !== -1 || msg.indexOf('Bad Request') !== -1) {
+                    showLoginAlert('طلب غير مقبول (400). تحقق من تفعيل طريقة البريد/كلمة المرور في Firebase وإعدادات مفتاح API', 'error');
                 } else {
-                    showLoginAlert('خطأ في تسجيل الدخول: ' + error.message, 'error');
+                    showLoginAlert('خطأ في تسجيل الدخول: ' + (msg || code), 'error');
                 }
             }
         };
@@ -1860,12 +1868,9 @@
                 // Clear login form
                 document.getElementById('email').value = '';
                 document.getElementById('password').value = '';
-                // Try to create admin if not exists (only once on page load)
-                // This only creates the admin account, but doesn't log them in automatically
-                if (!window.adminCheckAttempted) {
-                    window.adminCheckAttempted = true;
-                    await checkAndCreateAdmin();
-                }
+                // Do not auto-create admin on load (avoids 400 if sign-up is disabled or API restricted)
+                // Create admin user from Firebase Console (Authentication > Add user) if needed
+                window.adminCheckAttempted = true;
             }
         });
 
