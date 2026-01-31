@@ -920,7 +920,7 @@
                 <div id="receive" class="section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2>عمليات الاستلام</h2>
-                        <button class="btn btn-primary" onclick="showReceiveModal()">إضافة استلام جديد</button>
+                        <button id="receiveAddBtn" class="btn btn-primary" onclick="showReceiveModal()">إضافة استلام جديد</button>
                     </div>
                     <div class="search-box">
                         <input type="text" id="searchReceives" placeholder="بحث في عمليات الاستلام..." onkeyup="filterReceives()">
@@ -945,7 +945,7 @@
                 <div id="deliver" class="section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2>عمليات التسليم</h2>
-                        <button class="btn btn-primary" onclick="showDeliverModal()">إضافة تسليم جديد</button>
+                        <button id="deliverAddBtn" class="btn btn-primary" onclick="showDeliverModal()">إضافة تسليم جديد</button>
                     </div>
                     <div class="search-box">
                         <input type="text" id="searchDelivers" placeholder="بحث في عمليات التسليم..." onkeyup="filterDelivers()">
@@ -970,7 +970,7 @@
                 <div id="return" class="section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2>عمليات الاسترداد</h2>
-                        <button class="btn btn-primary" onclick="showReturnModal()">إضافة استرداد جديد</button>
+                        <button id="returnAddBtn" class="btn btn-primary" onclick="showReturnModal()">إضافة استرداد جديد</button>
                     </div>
                     <div class="search-box">
                         <input type="text" id="searchReturns" placeholder="بحث في عمليات الاسترداد..." onkeyup="filterReturns()">
@@ -1709,6 +1709,30 @@
                             <span>إدارة الوحدات (إضافة/تعديل/حذف)</span>
                         </label>
                     </div>
+                    <div class="form-section" style="margin-top: 15px;">
+                        <div class="form-section-title" style="border-bottom-color: #3498db;">صلاحيات عمليات الاستلام</div>
+                        <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px 25px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReceiveAdd" style="margin-left: 8px; width: 18px; height: 18px;"> <span>إضافة</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReceiveEdit" style="margin-left: 8px; width: 18px; height: 18px;"> <span>تعديل</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReceiveDelete" style="margin-left: 8px; width: 18px; height: 18px;"> <span>حذف</span></label>
+                        </div>
+                    </div>
+                    <div class="form-section" style="margin-top: 15px;">
+                        <div class="form-section-title" style="border-bottom-color: #3498db;">صلاحيات عمليات التسليم</div>
+                        <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px 25px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userDeliverAdd" style="margin-left: 8px; width: 18px; height: 18px;"> <span>إضافة</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userDeliverEdit" style="margin-left: 8px; width: 18px; height: 18px;"> <span>تعديل</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userDeliverDelete" style="margin-left: 8px; width: 18px; height: 18px;"> <span>حذف</span></label>
+                        </div>
+                    </div>
+                    <div class="form-section" style="margin-top: 15px;">
+                        <div class="form-section-title" style="border-bottom-color: #3498db;">صلاحيات عمليات الاسترداد</div>
+                        <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px 25px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReturnAdd" style="margin-left: 8px; width: 18px; height: 18px;"> <span>إضافة</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReturnEdit" style="margin-left: 8px; width: 18px; height: 18px;"> <span>تعديل</span></label>
+                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReturnDelete" style="margin-left: 8px; width: 18px; height: 18px;"> <span>حذف</span></label>
+                        </div>
+                    </div>
                     <small style="color: #666; font-size: 12px;">اختر الصلاحيات التي يمكن للمستخدم القيام بها</small>
                 </div>
                 <div class="modal-footer">
@@ -1729,6 +1753,10 @@
         window.getDoc = getDoc;
 
         // Firebase configuration
+        // ═══════════════════════════════════════════════════════════════════════════
+        // إذا كان تسجيل الدخول يعمل محلياً ولا يعمل عبر الرابط (GitHub Pages):
+        // السبب: النطاق غير مسموح في Firebase. نفّذ الخطوات في الملف: إعداد-النشر-على-GitHub-Pages.md
+        // ═══════════════════════════════════════════════════════════════════════════
         const firebaseConfig = {
             apiKey: "AIzaSyA_2C7R24mCCbNLZ9geavxSnsse0XZYqtQ",
             authDomain: "inventory-management-b5edb.firebaseapp.com",
@@ -1766,7 +1794,7 @@
         window.warehouseInventory = {};
         window.workSiteInventory = {};
 
-        // Check and create admin user (optional - only if Firebase allows sign-up; do not run on every load to avoid 400)
+        // Check and create admin user (optional - call manually if needed; not run on load to avoid 400 on GitHub Pages)
         async function checkAndCreateAdmin() {
             try {
                 try {
@@ -1777,7 +1805,6 @@
                     if (createError.code === 'auth/email-already-in-use') {
                         return true;
                     }
-                    // 400 / OPERATION_NOT_ALLOWED etc: sign-up may be disabled or API restricted - ignore
                     return false;
                 }
             } catch (error) {
@@ -1812,7 +1839,7 @@
                 } else if (code === 'auth/operation-not-allowed') {
                     showLoginAlert('تسجيل الدخول بالبريد وكلمة المرور غير مفعّل في إعدادات المشروع', 'error');
                 } else if (msg.indexOf('400') !== -1 || msg.indexOf('Bad Request') !== -1) {
-                    showLoginAlert('طلب غير مقبول (400). تحقق من تفعيل طريقة البريد/كلمة المرور في Firebase وإعدادات مفتاح API', 'error');
+                    showLoginAlert('خطأ 400: أضف النطاق alialq93.github.io في Firebase (Authentication > Authorized domains) ومفتاح API', 'error');
                 } else {
                     showLoginAlert('خطأ في تسجيل الدخول: ' + (msg || code), 'error');
                 }
@@ -1868,8 +1895,6 @@
                 // Clear login form
                 document.getElementById('email').value = '';
                 document.getElementById('password').value = '';
-                // Do not auto-create admin on load (avoids 400 if sign-up is disabled or API restricted)
-                // Create admin user from Firebase Console (Authentication > Add user) if needed
                 window.adminCheckAttempted = true;
             }
         });
@@ -2362,6 +2387,17 @@
             if (unitAddBtn) {
                 unitAddBtn.style.display = canManageUnits ? 'inline-block' : 'none';
             }
+            
+            // Receive / Deliver / Return add buttons
+            const canAddReceive = isAdmin || (window.currentUserPermissions.receiveAdd === true);
+            const canAddDeliver = isAdmin || (window.currentUserPermissions.deliverAdd === true);
+            const canAddReturn = isAdmin || (window.currentUserPermissions.returnAdd === true);
+            const receiveAddBtn = document.getElementById('receiveAddBtn');
+            const deliverAddBtn = document.getElementById('deliverAddBtn');
+            const returnAddBtn = document.getElementById('returnAddBtn');
+            if (receiveAddBtn) receiveAddBtn.style.display = canAddReceive ? 'inline-block' : 'none';
+            if (deliverAddBtn) deliverAddBtn.style.display = canAddDeliver ? 'inline-block' : 'none';
+            if (returnAddBtn) returnAddBtn.style.display = canAddReturn ? 'inline-block' : 'none';
             
             // Note: We don't call display functions here to avoid infinite loops
             // Display functions are called separately when needed (e.g., in loadMaterials, loadWarehouses, etc.)
@@ -3656,6 +3692,17 @@
         }
 
         window.showReceiveModal = async function(receiveId = null) {
+            const p = window.currentUserPermissions;
+            if (p && !p.isAdmin) {
+                if (receiveId && !p.receiveEdit) {
+                    showAlert('ليس لديك صلاحية تعديل عمليات الاستلام', 'error');
+                    return;
+                }
+                if (!receiveId && !p.receiveAdd) {
+                    showAlert('ليس لديك صلاحية إضافة عمليات الاستلام', 'error');
+                    return;
+                }
+            }
             const modal = document.getElementById('receiveModal');
             const form = document.getElementById('receiveForm');
             window.editingReceiveId = receiveId;
@@ -3946,12 +3993,20 @@
                 receives.sort((a, b) => b.createdAtTimestamp - a.createdAtTimestamp);
 
                 // Display sorted results
+                const p = window.currentUserPermissions;
+                const canEditReceive = p && (p.isAdmin || p.receiveEdit === true);
+                const canDeleteReceive = p && (p.isAdmin || p.receiveDelete === true);
                 receives.forEach(receive => {
                     const supplier = window.suppliers.find(s => s.id === receive.supplierId);
                     const warehouse = window.warehouses.find(w => w.id === receive.warehouseId);
                     
                     const dateStr = window.formatDate(receive.date);
-                    
+                    const actions = `
+                        <button class="btn btn-success btn-small" onclick="viewReceiveDetails('${receive.id}')">عرض</button>
+                        <button class="btn btn-info btn-small" onclick="printReceive('${receive.id}')" style="background-color: #17a2b8; color: white;">طباعة</button>
+                        ${canEditReceive ? `<button class="btn btn-warning btn-small" onclick="editReceive('${receive.id}')">تعديل</button>` : ''}
+                        ${canDeleteReceive ? `<button class="btn btn-danger btn-small" onclick="deleteReceive('${receive.id}')">حذف</button>` : ''}
+                    `;
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${receive.number || '-'}</td>
@@ -3960,12 +4015,7 @@
                         <td>${warehouse ? warehouse.name : '-'}</td>
                         <td>${receive.items?.length || 0}</td>
                         <td>${receive.notes || '-'}</td>
-                        <td>
-                            <button class="btn btn-success btn-small" onclick="viewReceiveDetails('${receive.id}')">عرض</button>
-                            <button class="btn btn-info btn-small" onclick="printReceive('${receive.id}')" style="background-color: #17a2b8; color: white;">طباعة</button>
-                            <button class="btn btn-warning btn-small" onclick="editReceive('${receive.id}')">تعديل</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteReceive('${receive.id}')">حذف</button>
-                        </td>
+                        <td>${actions}</td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -3976,6 +4026,7 @@
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">خطأ في تحميل عمليات الاستلام</td></tr>';
                 }
             }
+            updateManagementButtonsVisibility();
         }
 
         window.filterReceives = function() {
@@ -4415,6 +4466,18 @@
 
         async function saveReceive(e) {
             e.preventDefault();
+            const p = window.currentUserPermissions;
+            const isEdit = !!window.editingReceiveId;
+            if (p && !p.isAdmin) {
+                if (isEdit && !p.receiveEdit) {
+                    showAlert('ليس لديك صلاحية تعديل عمليات الاستلام', 'error');
+                    return;
+                }
+                if (!isEdit && !p.receiveAdd) {
+                    showAlert('ليس لديك صلاحية إضافة عمليات الاستلام', 'error');
+                    return;
+                }
+            }
             const { addDoc, updateDoc, doc, getDoc, collection, Timestamp } = window.firebaseCollections;
             const db = window.firebaseDb;
 
@@ -4500,12 +4563,13 @@
             };
 
             try {
+                let oldData = null;
                 
                 if (window.editingReceiveId) {
                     // Edit mode: Get old data, reverse inventory changes, then apply new changes
                     const oldReceiveDoc = await getDoc(doc(db, 'transactions', window.editingReceiveId));
                     if (oldReceiveDoc.exists()) {
-                        const oldData = oldReceiveDoc.data();
+                        oldData = oldReceiveDoc.data();
                         
                         // Reverse old inventory changes (subtract old quantities)
                         if (oldData.items) {
@@ -4563,6 +4627,11 @@
         };
 
         window.deleteReceive = async function(receiveId) {
+            const p = window.currentUserPermissions;
+            if (p && !p.isAdmin && !p.receiveDelete) {
+                showAlert('ليس لديك صلاحية حذف عمليات الاستلام', 'error');
+                return;
+            }
             if (!confirm('هل أنت متأكد من حذف عملية الاستلام هذه؟ سيتم إزالة المواد من المخزون.')) {
                 return;
             }
@@ -4645,6 +4714,17 @@
         }
 
         window.showDeliverModal = async function(deliverId = null) {
+            const p = window.currentUserPermissions;
+            if (p && !p.isAdmin) {
+                if (deliverId && !p.deliverEdit) {
+                    showAlert('ليس لديك صلاحية تعديل عمليات التسليم', 'error');
+                    return;
+                }
+                if (!deliverId && !p.deliverAdd) {
+                    showAlert('ليس لديك صلاحية إضافة عمليات التسليم', 'error');
+                    return;
+                }
+            }
             const modal = document.getElementById('deliverModal');
             const form = document.getElementById('deliverForm');
             window.editingDeliverId = deliverId;
@@ -4738,12 +4818,20 @@
                 delivers.sort((a, b) => b.createdAtTimestamp - a.createdAtTimestamp);
 
                 // Display sorted results
+                const p = window.currentUserPermissions;
+                const canEditDeliver = p && (p.isAdmin || p.deliverEdit === true);
+                const canDeleteDeliver = p && (p.isAdmin || p.deliverDelete === true);
                 delivers.forEach(deliver => {
                     const warehouse = window.warehouses.find(w => w.id === deliver.warehouseId);
                     const workSite = window.workSites.find(w => w.id === deliver.workSiteId);
                     
                     const dateStr = window.formatDate(deliver.date);
-                    
+                    const actions = `
+                        <button class="btn btn-success btn-small" onclick="viewDeliverDetails('${deliver.id}')">عرض</button>
+                        <button class="btn btn-info btn-small" onclick="printDeliver('${deliver.id}')" style="background-color: #17a2b8; color: white;">طباعة</button>
+                        ${canEditDeliver ? `<button class="btn btn-warning btn-small" onclick="editDeliver('${deliver.id}')">تعديل</button>` : ''}
+                        ${canDeleteDeliver ? `<button class="btn btn-danger btn-small" onclick="deleteDeliver('${deliver.id}')">حذف</button>` : ''}
+                    `;
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${deliver.number || '-'}</td>
@@ -4752,12 +4840,7 @@
                         <td>${workSite ? workSite.name : '-'}</td>
                         <td>${deliver.items?.length || 0}</td>
                         <td>${deliver.notes || '-'}</td>
-                        <td>
-                            <button class="btn btn-success btn-small" onclick="viewDeliverDetails('${deliver.id}')">عرض</button>
-                            <button class="btn btn-info btn-small" onclick="printDeliver('${deliver.id}')" style="background-color: #17a2b8; color: white;">طباعة</button>
-                            <button class="btn btn-warning btn-small" onclick="editDeliver('${deliver.id}')">تعديل</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteDeliver('${deliver.id}')">حذف</button>
-                        </td>
+                        <td>${actions}</td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -4768,6 +4851,7 @@
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">خطأ في تحميل عمليات التسليم</td></tr>';
                 }
             }
+            updateManagementButtonsVisibility();
         }
 
         window.filterDelivers = function() {
@@ -5076,6 +5160,11 @@
         };
 
         window.deleteDeliver = async function(deliverId) {
+            const p = window.currentUserPermissions;
+            if (p && !p.isAdmin && !p.deliverDelete) {
+                showAlert('ليس لديك صلاحية حذف عمليات التسليم', 'error');
+                return;
+            }
             if (!confirm('هل أنت متأكد من حذف عملية التسليم هذه؟ سيتم إعادة المواد للمستودع وإزالتها من موقع العمل.')) {
                 return;
             }
@@ -5563,6 +5652,18 @@
 
         async function saveDeliver(e) {
             e.preventDefault();
+            const p = window.currentUserPermissions;
+            const isEdit = !!window.editingDeliverId;
+            if (p && !p.isAdmin) {
+                if (isEdit && !p.deliverEdit) {
+                    showAlert('ليس لديك صلاحية تعديل عمليات التسليم', 'error');
+                    return;
+                }
+                if (!isEdit && !p.deliverAdd) {
+                    showAlert('ليس لديك صلاحية إضافة عمليات التسليم', 'error');
+                    return;
+                }
+            }
             const { addDoc, collection, Timestamp } = window.firebaseCollections;
             const db = window.firebaseDb;
 
@@ -5794,6 +5895,17 @@
         }
 
         window.showReturnModal = async function(returnId = null) {
+            const p = window.currentUserPermissions;
+            if (p && !p.isAdmin) {
+                if (returnId && !p.returnEdit) {
+                    showAlert('ليس لديك صلاحية تعديل عمليات الاسترداد', 'error');
+                    return;
+                }
+                if (!returnId && !p.returnAdd) {
+                    showAlert('ليس لديك صلاحية إضافة عمليات الاسترداد', 'error');
+                    return;
+                }
+            }
             const modal = document.getElementById('returnModal');
             const form = document.getElementById('returnForm');
             window.editingReturnId = returnId;
@@ -5887,12 +5999,20 @@
                 returns.sort((a, b) => b.createdAtTimestamp - a.createdAtTimestamp);
 
                 // Display sorted results
+                const p = window.currentUserPermissions;
+                const canEditReturn = p && (p.isAdmin || p.returnEdit === true);
+                const canDeleteReturn = p && (p.isAdmin || p.returnDelete === true);
                 returns.forEach(returnTrans => {
                     const warehouse = window.warehouses.find(w => w.id === returnTrans.warehouseId);
                     const workSite = window.workSites.find(w => w.id === returnTrans.workSiteId);
                     
                     const dateStr = window.formatDate(returnTrans.date);
-                    
+                    const actions = `
+                        <button class="btn btn-success btn-small" onclick="viewReturnDetails('${returnTrans.id}')">عرض</button>
+                        <button class="btn btn-info btn-small" onclick="printReturn('${returnTrans.id}')" style="background-color: #17a2b8; color: white;">طباعة</button>
+                        ${canEditReturn ? `<button class="btn btn-warning btn-small" onclick="editReturn('${returnTrans.id}')">تعديل</button>` : ''}
+                        ${canDeleteReturn ? `<button class="btn btn-danger btn-small" onclick="deleteReturn('${returnTrans.id}')">حذف</button>` : ''}
+                    `;
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${returnTrans.number || '-'}</td>
@@ -5901,12 +6021,7 @@
                         <td>${warehouse ? warehouse.name : '-'}</td>
                         <td>${returnTrans.items?.length || 0}</td>
                         <td>${returnTrans.notes || '-'}</td>
-                        <td>
-                            <button class="btn btn-success btn-small" onclick="viewReturnDetails('${returnTrans.id}')">عرض</button>
-                            <button class="btn btn-info btn-small" onclick="printReturn('${returnTrans.id}')" style="background-color: #17a2b8; color: white;">طباعة</button>
-                            <button class="btn btn-warning btn-small" onclick="editReturn('${returnTrans.id}')">تعديل</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteReturn('${returnTrans.id}')">حذف</button>
-                        </td>
+                        <td>${actions}</td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -5917,6 +6032,7 @@
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">خطأ في تحميل عمليات الاسترداد</td></tr>';
                 }
             }
+            updateManagementButtonsVisibility();
         };
 
         window.filterReturns = function() {
@@ -6430,6 +6546,18 @@
 
         async function saveReturn(e) {
             e.preventDefault();
+            const p = window.currentUserPermissions;
+            const isEdit = !!window.editingReturnId;
+            if (p && !p.isAdmin) {
+                if (isEdit && !p.returnEdit) {
+                    showAlert('ليس لديك صلاحية تعديل عمليات الاسترداد', 'error');
+                    return;
+                }
+                if (!isEdit && !p.returnAdd) {
+                    showAlert('ليس لديك صلاحية إضافة عمليات الاسترداد', 'error');
+                    return;
+                }
+            }
             const { addDoc, collection, Timestamp } = window.firebaseCollections;
             const db = window.firebaseDb;
 
@@ -6653,6 +6781,11 @@
         };
 
         window.deleteReturn = async function(returnId) {
+            const p = window.currentUserPermissions;
+            if (p && !p.isAdmin && !p.returnDelete) {
+                showAlert('ليس لديك صلاحية حذف عمليات الاسترداد', 'error');
+                return;
+            }
             if (!confirm('هل أنت متأكد من حذف عملية الاسترداد هذه؟ سيتم إعادة المواد لموقع العمل وإزالتها من المستودع.')) {
                 return;
             }
@@ -8888,6 +9021,26 @@
                     if (suppliersCheckbox) suppliersCheckbox.checked = canManageSuppliers;
                     if (unitsCheckbox) unitsCheckbox.checked = canManageUnits;
                     
+                    // Operations permissions (receive, deliver, return: add, edit, delete)
+                    const receiveAdd = user.receiveAdd === true || user.receiveAdd === 'true';
+                    const receiveEdit = user.receiveEdit === true || user.receiveEdit === 'true';
+                    const receiveDelete = user.receiveDelete === true || user.receiveDelete === 'true';
+                    const deliverAdd = user.deliverAdd === true || user.deliverAdd === 'true';
+                    const deliverEdit = user.deliverEdit === true || user.deliverEdit === 'true';
+                    const deliverDelete = user.deliverDelete === true || user.deliverDelete === 'true';
+                    const returnAdd = user.returnAdd === true || user.returnAdd === 'true';
+                    const returnEdit = user.returnEdit === true || user.returnEdit === 'true';
+                    const returnDelete = user.returnDelete === true || user.returnDelete === 'true';
+                    const ra = document.getElementById('userReceiveAdd'); if (ra) ra.checked = receiveAdd;
+                    const re = document.getElementById('userReceiveEdit'); if (re) re.checked = receiveEdit;
+                    const rd = document.getElementById('userReceiveDelete'); if (rd) rd.checked = receiveDelete;
+                    const da = document.getElementById('userDeliverAdd'); if (da) da.checked = deliverAdd;
+                    const de = document.getElementById('userDeliverEdit'); if (de) de.checked = deliverEdit;
+                    const dd = document.getElementById('userDeliverDelete'); if (dd) dd.checked = deliverDelete;
+                    const rta = document.getElementById('userReturnAdd'); if (rta) rta.checked = returnAdd;
+                    const rte = document.getElementById('userReturnEdit'); if (rte) rte.checked = returnEdit;
+                    const rtd = document.getElementById('userReturnDelete'); if (rtd) rtd.checked = returnDelete;
+                    
                     console.log('Setting management permissions in modal:', {
                         canManageMaterials,
                         canManageWarehouses,
@@ -8969,6 +9122,11 @@
                 document.getElementById('userCanManageWorkSites').checked = true;
                 document.getElementById('userCanManageSuppliers').checked = true;
                 document.getElementById('userCanManageUnits').checked = true;
+                // Default operations permissions to false for new users
+                ['userReceiveAdd','userReceiveEdit','userReceiveDelete','userDeliverAdd','userDeliverEdit','userDeliverDelete','userReturnAdd','userReturnEdit','userReturnDelete'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.checked = false;
+                });
             }
             
             modal.classList.add('active');
@@ -9032,6 +9190,16 @@
             const canManageSuppliers = suppliersCheckbox ? suppliersCheckbox.checked === true : false;
             const canManageUnits = unitsCheckbox ? unitsCheckbox.checked === true : false;
             
+            const receiveAdd = document.getElementById('userReceiveAdd')?.checked === true;
+            const receiveEdit = document.getElementById('userReceiveEdit')?.checked === true;
+            const receiveDelete = document.getElementById('userReceiveDelete')?.checked === true;
+            const deliverAdd = document.getElementById('userDeliverAdd')?.checked === true;
+            const deliverEdit = document.getElementById('userDeliverEdit')?.checked === true;
+            const deliverDelete = document.getElementById('userDeliverDelete')?.checked === true;
+            const returnAdd = document.getElementById('userReturnAdd')?.checked === true;
+            const returnEdit = document.getElementById('userReturnEdit')?.checked === true;
+            const returnDelete = document.getElementById('userReturnDelete')?.checked === true;
+            
             console.log('Saving user permissions to database:', {
                 email,
                 canManageMaterials,
@@ -9062,6 +9230,9 @@
                         canManageWorkSites: canManageWorkSites,
                         canManageSuppliers: canManageSuppliers,
                         canManageUnits: canManageUnits,
+                        receiveAdd, receiveEdit, receiveDelete,
+                        deliverAdd, deliverEdit, deliverDelete,
+                        returnAdd, returnEdit, returnDelete,
                         updatedAt: new Date()
                     };
                     
@@ -9076,7 +9247,10 @@
                             canManageWarehouses: userData.canManageWarehouses,
                             canManageWorkSites: userData.canManageWorkSites,
                             canManageSuppliers: userData.canManageSuppliers,
-                            canManageUnits: userData.canManageUnits
+                            canManageUnits: userData.canManageUnits,
+                            receiveAdd, receiveEdit, receiveDelete,
+                            deliverAdd, deliverEdit, deliverDelete,
+                            returnAdd, returnEdit, returnDelete
                         }
                     });
                     
@@ -9093,6 +9267,15 @@
                         canManageWorkSites: Boolean(canManageWorkSites),
                         canManageSuppliers: Boolean(canManageSuppliers),
                         canManageUnits: Boolean(canManageUnits),
+                        receiveAdd: Boolean(receiveAdd),
+                        receiveEdit: Boolean(receiveEdit),
+                        receiveDelete: Boolean(receiveDelete),
+                        deliverAdd: Boolean(deliverAdd),
+                        deliverEdit: Boolean(deliverEdit),
+                        deliverDelete: Boolean(deliverDelete),
+                        returnAdd: Boolean(returnAdd),
+                        returnEdit: Boolean(returnEdit),
+                        returnDelete: Boolean(returnDelete),
                         updatedAt: new Date()
                     });
                     
@@ -9135,6 +9318,12 @@
                                 await loadSuppliers();
                             } else if (window.currentSection === 'units' && typeof loadUnits === 'function') {
                                 await loadUnits();
+                            } else if (window.currentSection === 'receive' && typeof loadReceives === 'function') {
+                                await loadReceives();
+                            } else if (window.currentSection === 'deliver' && typeof loadDelivers === 'function') {
+                                await loadDelivers();
+                            } else if (window.currentSection === 'return' && typeof loadReturns === 'function') {
+                                await loadReturns();
                             } else {
                                 // For other sections, update buttons visibility directly
                                 updateManagementButtonsVisibility();
@@ -9171,6 +9360,15 @@
                         canManageWorkSites: Boolean(canManageWorkSites),
                         canManageSuppliers: Boolean(canManageSuppliers),
                         canManageUnits: Boolean(canManageUnits),
+                        receiveAdd: Boolean(receiveAdd),
+                        receiveEdit: Boolean(receiveEdit),
+                        receiveDelete: Boolean(receiveDelete),
+                        deliverAdd: Boolean(deliverAdd),
+                        deliverEdit: Boolean(deliverEdit),
+                        deliverDelete: Boolean(deliverDelete),
+                        returnAdd: Boolean(returnAdd),
+                        returnEdit: Boolean(returnEdit),
+                        returnDelete: Boolean(returnDelete),
                         createdAt: new Date(),
                         updatedAt: new Date()
                     };
@@ -9261,7 +9459,10 @@
                         canManageWarehouses: false,
                         canManageWorkSites: false,
                         canManageSuppliers: false,
-                        canManageUnits: false
+                        canManageUnits: false,
+                        receiveAdd: false, receiveEdit: false, receiveDelete: false,
+                        deliverAdd: false, deliverEdit: false, deliverDelete: false,
+                        returnAdd: false, returnEdit: false, returnDelete: false
                     };
                     return;
                 }
@@ -9394,13 +9595,26 @@
                     const canManageSuppliers = userData.canManageSuppliers !== undefined && (userData.canManageSuppliers === true || userData.canManageSuppliers === 'true');
                     const canManageUnits = userData.canManageUnits !== undefined && (userData.canManageUnits === true || userData.canManageUnits === 'true');
                     
+                    const receiveAdd = userData.receiveAdd === true || userData.receiveAdd === 'true';
+                    const receiveEdit = userData.receiveEdit === true || userData.receiveEdit === 'true';
+                    const receiveDelete = userData.receiveDelete === true || userData.receiveDelete === 'true';
+                    const deliverAdd = userData.deliverAdd === true || userData.deliverAdd === 'true';
+                    const deliverEdit = userData.deliverEdit === true || userData.deliverEdit === 'true';
+                    const deliverDelete = userData.deliverDelete === true || userData.deliverDelete === 'true';
+                    const returnAdd = userData.returnAdd === true || userData.returnAdd === 'true';
+                    const returnEdit = userData.returnEdit === true || userData.returnEdit === 'true';
+                    const returnDelete = userData.returnDelete === true || userData.returnDelete === 'true';
+                    
                     // Debug: Log calculated values
                     console.log('Calculated permission values:', {
                         canManageMaterials,
                         canManageWarehouses,
                         canManageWorkSites,
                         canManageSuppliers,
-                        canManageUnits
+                        canManageUnits,
+                        receiveAdd, receiveEdit, receiveDelete,
+                        deliverAdd, deliverEdit, deliverDelete,
+                        returnAdd, returnEdit, returnDelete
                     });
                     
                     window.currentUserPermissions = {
@@ -9413,7 +9627,10 @@
                         canManageWarehouses: canManageWarehouses,
                         canManageWorkSites: canManageWorkSites,
                         canManageSuppliers: canManageSuppliers,
-                        canManageUnits: canManageUnits
+                        canManageUnits: canManageUnits,
+                        receiveAdd, receiveEdit, receiveDelete,
+                        deliverAdd, deliverEdit, deliverDelete,
+                        returnAdd, returnEdit, returnDelete
                     };
                     
                     console.log('Loaded user permissions - FINAL RESULT:', {
@@ -9454,7 +9671,10 @@
                         canManageWarehouses: true,
                         canManageWorkSites: true,
                         canManageSuppliers: true,
-                        canManageUnits: true
+                        canManageUnits: true,
+                        receiveAdd: true, receiveEdit: true, receiveDelete: true,
+                        deliverAdd: true, deliverEdit: true, deliverDelete: true,
+                        returnAdd: true, returnEdit: true, returnDelete: true
                     };
                 } else {
                     // No permissions set - default to no access for security
@@ -9472,7 +9692,10 @@
                         canManageWarehouses: false,
                         canManageWorkSites: false,
                         canManageSuppliers: false,
-                        canManageUnits: false
+                        canManageUnits: false,
+                        receiveAdd: false, receiveEdit: false, receiveDelete: false,
+                        deliverAdd: false, deliverEdit: false, deliverDelete: false,
+                        returnAdd: false, returnEdit: false, returnDelete: false
                     };
                     
                     // Show alert to user that they need to be added to the system
@@ -9505,7 +9728,10 @@
                     canManageWarehouses: false,
                     canManageWorkSites: false,
                     canManageSuppliers: false,
-                    canManageUnits: false
+                    canManageUnits: false,
+                    receiveAdd: false, receiveEdit: false, receiveDelete: false,
+                    deliverAdd: false, deliverEdit: false, deliverDelete: false,
+                    returnAdd: false, returnEdit: false, returnDelete: false
                 };
                 
                 console.log('loadCurrentUserPermissions: Set default permissions due to error');
