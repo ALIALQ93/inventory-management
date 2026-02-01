@@ -482,6 +482,21 @@
             display: block;
         }
 
+        /* القائمة العائمة: تظهر فوق كل العناصر دون تقيد بمنطقة التمرير */
+        .searchable-select .options-list.floating {
+            position: fixed;
+            z-index: 10000;
+        }
+
+        /* عرض القائمة المنسدلة أعلى عند عدم وجود مساحة كافية أسفل */
+        .searchable-select .options-list.above {
+            top: auto;
+            bottom: 100%;
+            margin-top: 0;
+            margin-bottom: 4px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+        }
+
         .searchable-select .option-item {
             padding: 12px;
             cursor: pointer;
@@ -3936,7 +3951,8 @@
         document.addEventListener('click', function(event) {
             if (!event.target.closest('.searchable-select')) {
                 document.querySelectorAll('.options-list').forEach(list => {
-                    list.classList.remove('show');
+                    list.classList.remove('show', 'above', 'floating');
+                    list.style.top = list.style.bottom = list.style.left = list.style.width = list.style.boxShadow = '';
                 });
             }
         });
@@ -4355,6 +4371,7 @@
             itemRow.appendChild(removeBtn);
 
             document.getElementById('receiveItemsList').appendChild(itemRow);
+            itemRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
         function selectMaterial(itemId, materialId, materialName, baseUnit, subUnit, desiredUnit = null) {
@@ -4412,6 +4429,32 @@
 
         window.toggleMaterialOptions = function(itemId) {
             const options = document.getElementById(`materialOptions_${itemId}`);
+            const isOpening = !options.classList.contains('show');
+            if (isOpening) {
+                const itemRow = options.closest('.item-row');
+                const trigger = options.parentElement?.querySelector('.selected-value');
+                if (itemRow && trigger) {
+                    itemRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    options.classList.add('floating');
+                    const rect = trigger.getBoundingClientRect();
+                    const dropdownHeight = 220;
+                    const gap = 4;
+                    if (rect.bottom + dropdownHeight + gap <= window.innerHeight - 20) {
+                        options.style.top = (rect.bottom + gap) + 'px';
+                        options.style.bottom = 'auto';
+                        options.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+                    } else {
+                        options.style.top = 'auto';
+                        options.style.bottom = (window.innerHeight - rect.top + gap) + 'px';
+                        options.style.boxShadow = '0 -5px 15px rgba(0,0,0,0.2)';
+                    }
+                    options.style.left = rect.left + 'px';
+                    options.style.width = rect.width + 'px';
+                }
+            } else {
+                options.classList.remove('floating');
+                options.style.top = options.style.bottom = options.style.left = options.style.width = options.style.boxShadow = '';
+            }
             options.classList.toggle('show');
         };
 
@@ -5322,6 +5365,7 @@
             itemRow.appendChild(removeBtn);
 
             document.getElementById('deliverItemsList').appendChild(itemRow);
+            itemRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
         function selectDeliverMaterial(itemId, materialId, materialName, baseUnit, subUnit, availableQty) {
@@ -5406,6 +5450,32 @@
 
         window.toggleDeliverMaterialOptions = function(itemId) {
             const options = document.getElementById(`deliverMaterialOptions_${itemId}`);
+            const isOpening = !options.classList.contains('show');
+            if (isOpening) {
+                const itemRow = options.closest('.item-row');
+                const trigger = options.parentElement?.querySelector('.selected-value');
+                if (itemRow && trigger) {
+                    itemRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    options.classList.add('floating');
+                    const rect = trigger.getBoundingClientRect();
+                    const dropdownHeight = 220;
+                    const gap = 4;
+                    if (rect.bottom + dropdownHeight + gap <= window.innerHeight - 20) {
+                        options.style.top = (rect.bottom + gap) + 'px';
+                        options.style.bottom = 'auto';
+                        options.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+                    } else {
+                        options.style.top = 'auto';
+                        options.style.bottom = (window.innerHeight - rect.top + gap) + 'px';
+                        options.style.boxShadow = '0 -5px 15px rgba(0,0,0,0.2)';
+                    }
+                    options.style.left = rect.left + 'px';
+                    options.style.width = rect.width + 'px';
+                }
+            } else {
+                options.classList.remove('floating');
+                options.style.top = options.style.bottom = options.style.left = options.style.width = options.style.boxShadow = '';
+            }
             options.classList.toggle('show');
         };
 
