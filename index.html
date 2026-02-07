@@ -758,6 +758,9 @@
                 <div class="menu-item" onclick="showSection('workSites')">
                     <i>🏗️</i> إدارة مواقع العمل
                 </div>
+                <div class="menu-item" onclick="showSection('workSiteGroups')">
+                    <i>📁</i> مجموعات مواقع العمل
+                </div>
                 <div class="menu-item" onclick="showSection('suppliers')">
                     <i>🚚</i> إدارة المزودين
                 </div>
@@ -882,12 +885,32 @@
                             <tr>
                                 <th>اسم الموقع</th>
                                 <th>العنوان</th>
+                                <th>المجموعة</th>
                                 <th>المسؤول</th>
                                 <th>نوع المشروع</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="workSitesTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Work Site Groups Section -->
+                <div id="workSiteGroups" class="section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>مجموعات مواقع العمل</h2>
+                        <button class="btn btn-primary" onclick="showWorkSiteGroupModal()">إضافة مجموعة جديدة</button>
+                    </div>
+                    <p style="color: #666; margin-bottom: 15px;">عند منح المستخدم صلاحية على مجموعة، يصبح له الوصول إلى كل مواقع العمل المدرجة ضمنها.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>اسم المجموعة</th>
+                                <th>الوصف</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workSiteGroupsTableBody"></tbody>
                     </table>
                 </div>
 
@@ -1375,11 +1398,39 @@
                     <input type="text" id="workSiteManager">
                 </div>
                 <div class="form-group">
+                    <label>المجموعة:</label>
+                    <select id="workSiteGroupId">
+                        <option value="">بدون مجموعة</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>نوع المشروع:</label>
                     <input type="text" id="workSiteType">
                 </div>
                 <button type="submit" class="btn btn-primary">حفظ</button>
                 <button type="button" class="btn btn-secondary" onclick="closeModal('workSiteModal')">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Work Site Group Modal -->
+    <div id="workSiteGroupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="workSiteGroupModalTitle">إضافة مجموعة مواقع عمل جديدة</h2>
+                <button class="close" onclick="closeModal('workSiteGroupModal')">&times;</button>
+            </div>
+            <form id="workSiteGroupForm">
+                <div class="form-group">
+                    <label>اسم المجموعة:</label>
+                    <input type="text" id="workSiteGroupName" required>
+                </div>
+                <div class="form-group">
+                    <label>الوصف (اختياري):</label>
+                    <input type="text" id="workSiteGroupDescription" placeholder="">
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('workSiteGroupModal')">إلغاء</button>
             </form>
         </div>
     </div>
@@ -1687,11 +1738,16 @@
                     <small style="color: #666; font-size: 12px;">اختر المستودعات التي يمكن للمستخدم الوصول إليها</small>
                 </div>
                 <div class="form-section" id="customWorkSitesSection" style="margin-top: 20px; display: none;">
-                    <div class="form-section-title" style="border-bottom-color: #3498db;">مواقع العمل المصرح بها</div>
-                    <div id="userWorkSitesList" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+                    <div class="form-section-title" style="border-bottom-color: #3498db;">مجموعات مواقع العمل المصرح بها</div>
+                    <div id="userWorkSiteGroupsList" style="max-height: 160px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+                        <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل المجموعات...</p>
+                    </div>
+                    <small style="color: #666; font-size: 12px;">اختر المجموعات: للمستخدم الوصول لجميع مواقع العمل ضمن كل مجموعة محددة</small>
+                    <div class="form-section-title" style="border-bottom-color: #3498db; margin-top: 12px;">مواقع عمل إضافية (فردية)</div>
+                    <div id="userWorkSitesList" style="max-height: 160px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
                         <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل مواقع العمل...</p>
                     </div>
-                    <small style="color: #666; font-size: 12px;">اختر مواقع العمل التي يمكن للمستخدم الوصول إليها</small>
+                    <small style="color: #666; font-size: 12px;">اختر مواقع عمل إضافية غير مدرجة في المجموعات أعلاه</small>
                 </div>
                 <div class="form-section" id="customSuppliersSection" style="margin-top: 20px; display: none;">
                     <div class="form-section-title" style="border-bottom-color: #3498db;">المزودين المصرح لهم</div>
@@ -1948,6 +2004,7 @@
                 'materials': 'إدارة المواد',
                 'warehouses': 'إدارة المستودعات',
                 'workSites': 'إدارة مواقع العمل',
+                'workSiteGroups': 'مجموعات مواقع العمل',
                 'suppliers': 'إدارة المزودين',
                 'units': 'إدارة الوحدات',
                 'receive': 'عمليات الاستلام',
@@ -2065,6 +2122,7 @@
                 'materials': 'Materials Management',
                 'warehouses': 'Warehouses Management',
                 'workSites': 'Work Sites Management',
+                'workSiteGroups': 'Work Site Groups',
                 'suppliers': 'Suppliers Management',
                 'units': 'Units Management',
                 'receive': 'Receive Operations',
@@ -2217,7 +2275,7 @@
             
             // Update menu items
             const menuItems = document.querySelectorAll('.menu-item');
-            const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'reports', 'users'];
+            const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'workSiteGroups', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'reports', 'users'];
             menuItems.forEach((item, index) => {
                 if (index < menuKeys.length) {
                     const textNode = Array.from(item.childNodes).find(node => node.nodeType === 3 && node.textContent.trim());
@@ -2250,6 +2308,7 @@
                 'materials': { selector: '#materials h2', key: 'materials' },
                 'warehouses': { selector: '#warehouses h2', key: 'warehouses' },
                 'workSites': { selector: '#workSites h2', key: 'workSites' },
+                'workSiteGroups': { selector: '#workSiteGroups h2', key: 'workSiteGroups' },
                 'suppliers': { selector: '#suppliers h2', key: 'suppliers' },
                 'units': { selector: '#units h2', key: 'units' },
                 'receive': { selector: '#receive h2', key: 'receive' },
@@ -2302,6 +2361,8 @@
                     loadWarehouses();
                 } else if (currentSectionId === 'workSites' && typeof loadWorkSites === 'function') {
                     loadWorkSites();
+                } else if (currentSectionId === 'workSiteGroups' && typeof loadWorkSiteGroups === 'function') {
+                    loadWorkSiteGroups();
                 } else if (currentSectionId === 'suppliers' && typeof loadSuppliers === 'function') {
                     loadSuppliers();
                 } else if (currentSectionId === 'units' && typeof loadUnits === 'function') {
@@ -2482,7 +2543,7 @@
             } else {
                 // Find menu item by section ID
                 const menuItems = document.querySelectorAll('.menu-item');
-                const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'reports', 'users', 'activityLog'];
+                const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'workSiteGroups', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'reports', 'users', 'activityLog'];
                 const index = menuKeys.indexOf(sectionId);
                 if (index >= 0 && menuItems[index]) {
                     menuItems[index].classList.add('active');
@@ -2507,6 +2568,8 @@
                 loadReturns();
             } else if (sectionId === 'activityLog') {
                 await loadActivityLog();
+            } else if (sectionId === 'workSiteGroups') {
+                loadWorkSiteGroups();
             }
             
             // Note: updateManagementButtonsVisibility() is called by each load function after data is loaded
@@ -2533,8 +2596,9 @@
             
             // Reset editing IDs
             if (modalId === 'materialModal' || modalId === 'unitModal' || modalId === 'warehouseModal' || 
-                modalId === 'workSiteModal' || modalId === 'supplierModal') {
+                modalId === 'workSiteModal' || modalId === 'workSiteGroupModal' || modalId === 'supplierModal') {
                 window.editingId = null;
+                window.editingWorkSiteGroupId = null;
             }
             if (modalId === 'receiveModal') {
                 window.editingReceiveId = null;
@@ -2552,6 +2616,7 @@
             document.getElementById('materialForm').addEventListener('submit', saveMaterial);
             document.getElementById('warehouseForm').addEventListener('submit', saveWarehouse);
             document.getElementById('workSiteForm').addEventListener('submit', saveWorkSite);
+            document.getElementById('workSiteGroupForm').addEventListener('submit', saveWorkSiteGroup);
             document.getElementById('supplierForm').addEventListener('submit', saveSupplier);
             document.getElementById('unitForm').addEventListener('submit', saveUnit);
             document.getElementById('receiveForm').addEventListener('submit', saveReceive);
@@ -3359,6 +3424,7 @@
 
         async function loadWorkSites() {
             try {
+                if (typeof loadWorkSiteGroups === 'function') await loadWorkSiteGroups();
                 const workSitesRef = collection(db, 'workSites');
                 const snapshot = await getDocs(workSitesRef);
                 window.workSites = [];
@@ -3396,11 +3462,17 @@
             tbody.innerHTML = '';
             // Filter work sites based on permissions
             const filteredWorkSites = window.getFilteredWorkSitesSync ? window.getFilteredWorkSitesSync() : window.workSites;
+            const getWorkSiteGroupName = (groupId) => {
+                if (!groupId) return '-';
+                const g = (window.workSiteGroups || []).find(gr => gr.id === groupId);
+                return g ? g.name : '-';
+            };
             filteredWorkSites.forEach(workSite => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${workSite.name}</td>
                     <td>${workSite.address || '-'}</td>
+                    <td>${getWorkSiteGroupName(workSite.groupId)}</td>
                     <td>${workSite.manager || '-'}</td>
                     <td>${workSite.type || '-'}</td>
                     <td>
@@ -3433,10 +3505,14 @@
                     document.getElementById('workSiteAddress').value = workSite.address || '';
                     document.getElementById('workSiteManager').value = workSite.manager || '';
                     document.getElementById('workSiteType').value = workSite.type || '';
+                    const groupSelect = document.getElementById('workSiteGroupId');
+                    if (groupSelect) groupSelect.value = workSite.groupId || '';
                 }
             } else {
                 document.getElementById('workSiteModalTitle').textContent = window.t('addWorkSite');
                 form.reset();
+                const groupSelect = document.getElementById('workSiteGroupId');
+                if (groupSelect) groupSelect.value = '';
             }
             modal.classList.add('active');
         };
@@ -3457,7 +3533,8 @@
                 name: document.getElementById('workSiteName').value,
                 address: document.getElementById('workSiteAddress').value,
                 manager: document.getElementById('workSiteManager').value,
-                type: document.getElementById('workSiteType').value
+                type: document.getElementById('workSiteType').value,
+                groupId: document.getElementById('workSiteGroupId')?.value || null
             };
 
             try {
@@ -3505,6 +3582,118 @@
             } catch (error) {
                 console.error('Error deleting work site:', error);
                 showAlert('خطأ في حذف موقع العمل', 'error');
+            }
+        };
+
+        // ========== WORK SITE GROUPS MANAGEMENT ==========
+        window.workSiteGroups = [];
+
+        async function loadWorkSiteGroups() {
+            try {
+                const { collection, getDocs } = window.firebaseCollections;
+                const db = window.firebaseDb;
+                const workSiteGroupsRef = collection(db, 'workSiteGroups');
+                const snapshot = await getDocs(workSiteGroupsRef);
+                window.workSiteGroups = [];
+                snapshot.forEach((docSnapshot) => {
+                    window.workSiteGroups.push({ id: docSnapshot.id, ...docSnapshot.data() });
+                });
+                displayWorkSiteGroups();
+                // Populate work site group dropdown in work site form
+                const groupSelect = document.getElementById('workSiteGroupId');
+                if (groupSelect) {
+                    const currentValue = groupSelect.value;
+                    groupSelect.innerHTML = '<option value="">بدون مجموعة</option>';
+                    window.workSiteGroups.forEach(grp => {
+                        const option = document.createElement('option');
+                        option.value = grp.id;
+                        option.textContent = grp.name;
+                        groupSelect.appendChild(option);
+                    });
+                    groupSelect.value = currentValue || '';
+                }
+            } catch (error) {
+                console.error('Error loading work site groups:', error);
+            }
+        }
+
+        function displayWorkSiteGroups() {
+            const tbody = document.getElementById('workSiteGroupsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            window.workSiteGroups.forEach(grp => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${grp.name}</td>
+                    <td>${grp.description || '-'}</td>
+                    <td>
+                        <button class="btn btn-success btn-small" onclick="showWorkSiteGroupModal('${grp.id}')">تعديل</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteWorkSiteGroup('${grp.id}')">حذف</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        window.showWorkSiteGroupModal = function(groupId = null) {
+            window.editingWorkSiteGroupId = groupId;
+            const modal = document.getElementById('workSiteGroupModal');
+            const form = document.getElementById('workSiteGroupForm');
+            const titleEl = document.getElementById('workSiteGroupModalTitle');
+            if (groupId) {
+                const grp = window.workSiteGroups.find(g => g.id === groupId);
+                if (grp) {
+                    titleEl.textContent = 'تعديل مجموعة مواقع العمل';
+                    document.getElementById('workSiteGroupName').value = grp.name;
+                    document.getElementById('workSiteGroupDescription').value = grp.description || '';
+                }
+            } else {
+                titleEl.textContent = 'إضافة مجموعة مواقع عمل جديدة';
+                form.reset();
+            }
+            modal.classList.add('active');
+        };
+
+        window.saveWorkSiteGroup = async function(e) {
+            e.preventDefault();
+            const { addDoc, updateDoc, doc, collection } = window.firebaseCollections;
+            const db = window.firebaseDb;
+            const name = document.getElementById('workSiteGroupName').value.trim();
+            const description = document.getElementById('workSiteGroupDescription').value.trim() || null;
+            try {
+                if (window.editingWorkSiteGroupId) {
+                    await updateDoc(doc(db, 'workSiteGroups', window.editingWorkSiteGroupId), { name, description });
+                    await logActivity('update', 'workSiteGroup', window.editingWorkSiteGroupId, name, { name, description });
+                    showAlert('تم تحديث المجموعة بنجاح', 'success');
+                } else {
+                    const docRef = await addDoc(collection(db, 'workSiteGroups'), { name, description });
+                    await logActivity('create', 'workSiteGroup', docRef.id, name, { name, description });
+                    showAlert('تم إضافة المجموعة بنجاح', 'success');
+                }
+                closeModal('workSiteGroupModal');
+                window.editingWorkSiteGroupId = null;
+                await loadWorkSiteGroups();
+            } catch (error) {
+                console.error('Error saving work site group:', error);
+                showAlert('خطأ في حفظ المجموعة', 'error');
+            }
+        };
+
+        window.deleteWorkSiteGroup = async function(groupId) {
+            if (!confirm('هل أنت متأكد من حذف هذه المجموعة؟ لن يتم حذف مواقع العمل، لكنها ستُزال من المجموعة.')) return;
+            try {
+                const { deleteDoc, doc } = window.firebaseCollections;
+                const db = window.firebaseDb;
+                const grp = window.workSiteGroups.find(g => g.id === groupId);
+                const grpName = grp ? grp.name : 'غير معروف';
+                await deleteDoc(doc(db, 'workSiteGroups', groupId));
+                await logActivity('delete', 'workSiteGroup', groupId, grpName);
+                showAlert('تم حذف المجموعة بنجاح', 'success');
+                await loadWorkSiteGroups();
+                await loadWorkSites();
+            } catch (error) {
+                console.error('Error deleting work site group:', error);
+                showAlert('خطأ في حذف المجموعة', 'error');
             }
         };
 
@@ -9000,6 +9189,9 @@
             if (!window.workSites || window.workSites.length === 0) {
                 await loadWorkSites();
             }
+            if (!window.workSiteGroups || window.workSiteGroups.length === 0) {
+                await loadWorkSiteGroups();
+            }
             if (!window.suppliers || window.suppliers.length === 0) {
                 await loadSuppliers();
             }
@@ -9019,7 +9211,23 @@
                 warehousesList.appendChild(checkbox);
             });
             
-            // Populate work sites list
+            // Populate work site groups list
+            const workSiteGroupsList = document.getElementById('userWorkSiteGroupsList');
+            if (workSiteGroupsList) {
+                workSiteGroupsList.innerHTML = '';
+                (window.workSiteGroups || []).forEach(grp => {
+                    const checkbox = document.createElement('div');
+                    checkbox.style.marginBottom = '8px';
+                    checkbox.innerHTML = `
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" value="${grp.id}" class="user-worksite-group-checkbox" style="margin-left: 8px; width: 18px; height: 18px;">
+                            <span>${grp.name}</span>
+                        </label>
+                    `;
+                    workSiteGroupsList.appendChild(checkbox);
+                });
+            }
+            // Populate work sites list (individual)
             const workSitesList = document.getElementById('userWorkSitesList');
             workSitesList.innerHTML = '';
             window.workSites.forEach(workSite => {
@@ -9144,6 +9352,12 @@
                                 }
                             });
                             
+                            // Check selected work site groups
+                            const workSiteGroupsListEl = document.getElementById('userWorkSiteGroupsList');
+                            (user.workSiteGroupIds || []).forEach(grpId => {
+                                const cb = workSiteGroupsListEl ? workSiteGroupsListEl.querySelector(`input.user-worksite-group-checkbox[value="${grpId}"]`) : null;
+                                if (cb) cb.checked = true;
+                            });
                             // Check selected work sites
                             (user.workSites || []).forEach(wsId => {
                                 const checkbox = workSitesList.querySelector(`input.user-worksite-checkbox[value="${wsId}"]`);
@@ -9214,9 +9428,10 @@
             const name = document.getElementById('userName').value;
             const permissionType = document.querySelector('input[name="userPermissionType"]:checked')?.value || 'full';
             
-            // Get selected warehouses, work sites, and suppliers based on permission type
+            // Get selected warehouses, work sites, work site groups, and suppliers based on permission type
             let selectedWarehouses = [];
             let selectedWorkSites = [];
+            let selectedWorkSiteGroupIds = [];
             let selectedSuppliers = [];
             
             if (permissionType === 'custom') {
@@ -9224,6 +9439,9 @@
                 const warehouseCheckboxes = document.querySelectorAll('#userWarehousesList .user-warehouse-checkbox:checked');
                 selectedWarehouses = Array.from(warehouseCheckboxes).map(cb => cb.value);
                 
+                // Get checked work site groups
+                const workSiteGroupCheckboxes = document.querySelectorAll('#userWorkSiteGroupsList .user-worksite-group-checkbox:checked');
+                selectedWorkSiteGroupIds = Array.from(workSiteGroupCheckboxes).map(cb => cb.value);
                 // Get checked work sites
                 const workSiteCheckboxes = document.querySelectorAll('#userWorkSitesList .user-worksite-checkbox:checked');
                 selectedWorkSites = Array.from(workSiteCheckboxes).map(cb => cb.value);
@@ -9235,6 +9453,7 @@
                 // Full access - empty arrays means all access
                 selectedWarehouses = [];
                 selectedWorkSites = [];
+                selectedWorkSiteGroupIds = [];
                 selectedSuppliers = [];
             }
             
@@ -9294,6 +9513,7 @@
                         permissionType: permissionType,
                         warehouses: selectedWarehouses,
                         workSites: selectedWorkSites,
+                        workSiteGroupIds: selectedWorkSiteGroupIds,
                         suppliers: selectedSuppliers,
                         canManageMaterials: canManageMaterials,
                         canManageWarehouses: canManageWarehouses,
@@ -9331,6 +9551,7 @@
                         permissionType: permissionType,
                         warehouses: selectedWarehouses,
                         workSites: selectedWorkSites,
+                        workSiteGroupIds: selectedWorkSiteGroupIds,
                         suppliers: selectedSuppliers,
                         canManageMaterials: Boolean(canManageMaterials),
                         canManageWarehouses: Boolean(canManageWarehouses),
@@ -9384,6 +9605,8 @@
                                 await loadWarehouses();
                             } else if (window.currentSection === 'workSites' && typeof loadWorkSites === 'function') {
                                 await loadWorkSites();
+                            } else if (window.currentSection === 'workSiteGroups' && typeof loadWorkSiteGroups === 'function') {
+                                await loadWorkSiteGroups();
                             } else if (window.currentSection === 'suppliers' && typeof loadSuppliers === 'function') {
                                 await loadSuppliers();
                             } else if (window.currentSection === 'units' && typeof loadUnits === 'function') {
@@ -9424,6 +9647,7 @@
                         permissionType: permissionType,
                         warehouses: selectedWarehouses,
                         workSites: selectedWorkSites,
+                        workSiteGroupIds: selectedWorkSiteGroupIds,
                         suppliers: selectedSuppliers,
                         canManageMaterials: Boolean(canManageMaterials),
                         canManageWarehouses: Boolean(canManageWarehouses),
@@ -9522,6 +9746,7 @@
                     window.currentUserPermissions = {
                         warehouses: [],
                         workSites: [],
+                        workSiteGroupIds: [],
                         suppliers: [],
                         permissionType: 'custom',
                         isAdmin: false,
@@ -9690,6 +9915,7 @@
                     window.currentUserPermissions = {
                         warehouses: permissionType === 'full' ? [] : (userData.warehouses || []),
                         workSites: permissionType === 'full' ? [] : (userData.workSites || []),
+                        workSiteGroupIds: permissionType === 'full' ? [] : (userData.workSiteGroupIds || []),
                         suppliers: permissionType === 'full' ? [] : (userData.suppliers || []),
                         permissionType: permissionType,
                         isAdmin: currentUser.email === ADMIN_EMAIL,
@@ -9734,6 +9960,7 @@
                     window.currentUserPermissions = {
                         warehouses: [],
                         workSites: [],
+                        workSiteGroupIds: [],
                         suppliers: [],
                         permissionType: 'full',
                         isAdmin: true,
@@ -9755,6 +9982,7 @@
                     window.currentUserPermissions = {
                         warehouses: [],
                         workSites: [],
+                        workSiteGroupIds: [],
                         suppliers: [],
                         permissionType: 'custom',
                         isAdmin: false,
@@ -9791,6 +10019,7 @@
                 window.currentUserPermissions = {
                     warehouses: [],
                     workSites: [],
+                    workSiteGroupIds: [],
                     suppliers: [],
                     permissionType: 'custom',
                     isAdmin: false,
@@ -9857,8 +10086,7 @@
             if (window.currentUserPermissions.isAdmin || window.currentUserPermissions.permissionType === 'full') {
                 return window.workSites || [];
             }
-            const allowedIds = window.currentUserPermissions.workSites || [];
-            return (window.workSites || []).filter(ws => allowedIds.includes(ws.id));
+            return (window.workSites || []).filter(ws => window.hasWorkSiteAccess(ws.id));
         };
         
         // Synchronous version for immediate use
@@ -9870,8 +10098,7 @@
             if (window.currentUserPermissions.isAdmin || window.currentUserPermissions.permissionType === 'full') {
                 return window.workSites || [];
             }
-            const allowedIds = window.currentUserPermissions.workSites || [];
-            return (window.workSites || []).filter(ws => allowedIds.includes(ws.id));
+            return (window.workSites || []).filter(ws => window.hasWorkSiteAccess(ws.id));
         };
         
         window.hasWarehouseAccess = function(warehouseId) {
@@ -9893,7 +10120,10 @@
             if (window.currentUserPermissions.isAdmin || window.currentUserPermissions.permissionType === 'full') {
                 return true;
             }
-            return (window.currentUserPermissions.workSites || []).includes(workSiteId);
+            if ((window.currentUserPermissions.workSites || []).includes(workSiteId)) return true;
+            const workSite = (window.workSites || []).find(ws => ws.id === workSiteId);
+            const groupIds = window.currentUserPermissions.workSiteGroupIds || [];
+            return workSite && workSite.groupId && groupIds.includes(workSite.groupId);
         };
         
         window.getFilteredSuppliers = async function() {
