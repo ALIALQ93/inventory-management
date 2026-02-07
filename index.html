@@ -714,6 +714,68 @@
             width: 100px;
             display: inline-block;
         }
+
+        /* App loading overlay */
+        #appLoadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(44, 62, 80, 0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.3s ease;
+        }
+        #appLoadingOverlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #appLoadingOverlay .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top-color: #3498db;
+            border-radius: 50%;
+            animation: appLoadingSpin 0.9s linear infinite;
+        }
+        @keyframes appLoadingSpin {
+            to { transform: rotate(360deg); }
+        }
+        #appLoadingOverlay .loading-text {
+            color: #fff;
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+        #appLoadingOverlay .loading-error {
+            color: #e74c3c;
+            margin-top: 12px;
+            text-align: center;
+            max-width: 320px;
+        }
+        #appLoadingOverlay .loading-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+        }
+        #appLoadingOverlay .loading-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        #appLoadingOverlay .loading-actions .btn-retry {
+            background: #3498db;
+            color: #fff;
+        }
+        #appLoadingOverlay .loading-actions .btn-reload {
+            background: #2ecc71;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -736,6 +798,15 @@
 
     <!-- Main Application -->
     <div id="appSection" style="display: none;">
+        <div id="appLoadingOverlay">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="appLoadingText">جاري تحميل التطبيق...</div>
+            <div class="loading-error" id="appLoadingError" style="display: none;"></div>
+            <div class="loading-actions" id="appLoadingActions" style="display: none;">
+                <button type="button" class="btn-retry" id="appLoadingRetryBtn">إعادة المحاولة</button>
+                <button type="button" class="btn-reload" id="appLoadingReloadBtn">إعادة تحميل الصفحة</button>
+            </div>
+        </div>
         <div class="container">
             <!-- Sidebar -->
             <div class="sidebar">
@@ -778,6 +849,9 @@
                 </div>
                 <div class="menu-item" onclick="showSection('inventory')">
                     <i>📋</i> تتبع المخزون
+                </div>
+                <div class="menu-item" onclick="showSection('inventoryVerification')">
+                    <i>🔧</i> التحقق من المخزون وصيانته
                 </div>
                 <div class="menu-item" onclick="showSection('reports')">
                     <i>📈</i> التقارير
@@ -1058,6 +1132,64 @@
                         </thead>
                         <tbody id="inventoryTableBody"></tbody>
                     </table>
+                </div>
+
+                <!-- Inventory Verification & Maintenance Section -->
+                <div id="inventoryVerification" class="section">
+                    <h2>التحقق من صحة المخزون وصيانة الأخطاء</h2>
+                    <p style="color: #666; margin-bottom: 20px;">مقارنة الرصيد المحسوب من المعاملات (استلام - تسليم + استرداد قابل للاستخدام) مع الرصيد المسجل في المخزون، وعرض الفروقات مع إمكانية الإصلاح.</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label>نطاق الفحص:</label>
+                            <select id="inventoryVerifyScope">
+                                <option value="all">الكل (مستودعات + مواقع عمل)</option>
+                                <option value="warehouse">المستودعات فقط</option>
+                                <option value="workSite">مواقع العمل فقط</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="inventoryVerifyWarehouseGroup">
+                            <label>المستودع (اختياري):</label>
+                            <select id="inventoryVerifyWarehouse">
+                                <option value="">جميع المستودعات</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="inventoryVerifyWorkSiteGroup">
+                            <label>موقع العمل (اختياري):</label>
+                            <select id="inventoryVerifyWorkSite">
+                                <option value="">جميع مواقع العمل</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>المادة (اختياري):</label>
+                            <select id="inventoryVerifyMaterial">
+                                <option value="">جميع المواد</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <button type="button" class="btn btn-primary" id="inventoryVerifyScanBtn" onclick="runInventoryVerification()">فحص المخزون</button>
+                        <button type="button" class="btn btn-warning" id="inventoryVerifyRepairBtn" onclick="repairInventoryDiscrepancies()" style="display: none; margin-right: 10px;">إصلاح الفروقات المحددة</button>
+                    </div>
+                    <div id="inventoryVerifyStatus" style="margin-bottom: 15px; font-weight: bold;"></div>
+                    <div id="inventoryVerifyResults" style="overflow-x: auto;">
+                        <table id="inventoryVerifyTable" style="display: none; width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f5f5f5;">
+                                    <th style="padding: 10px; border: 1px solid #ddd;">الموقع / المستودع</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">نوع الموقع</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">المادة</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">المستلم</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">المسلم</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">المسترد</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">الرصيد المحسوب</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">الرصيد المسجل</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">الفرق</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd;">إصلاح</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryVerifyTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Reports Section -->
@@ -1951,19 +2083,83 @@
             }
         };
 
+        // App loading overlay helpers
+        const APP_LOAD_TIMEOUT_MS = 45000;
+        function showAppLoading(show, options) {
+            const overlay = document.getElementById('appLoadingOverlay');
+            const textEl = document.getElementById('appLoadingText');
+            const errorEl = document.getElementById('appLoadingError');
+            const actionsEl = document.getElementById('appLoadingActions');
+            if (!overlay) return;
+            if (show) {
+                overlay.classList.remove('hidden');
+                overlay.style.display = 'flex';
+                if (options && options.message) textEl.textContent = options.message;
+                else textEl.textContent = 'جاري تحميل التطبيق...';
+                if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+                if (actionsEl) actionsEl.style.display = 'none';
+            } else {
+                overlay.classList.add('hidden');
+                setTimeout(function() { overlay.style.display = 'none'; }, 300);
+            }
+        }
+        function showAppLoadingError(message, allowRetry) {
+            const overlay = document.getElementById('appLoadingOverlay');
+            const textEl = document.getElementById('appLoadingText');
+            const errorEl = document.getElementById('appLoadingError');
+            const actionsEl = document.getElementById('appLoadingActions');
+            const spinner = overlay && overlay.querySelector('.loading-spinner');
+            if (textEl) textEl.textContent = 'تعذر تحميل التطبيق';
+            if (errorEl) { errorEl.textContent = message || 'حدث خطأ في الاتصال أو انتهت الجلسة.'; errorEl.style.display = 'block'; }
+            if (spinner) spinner.style.display = 'none';
+            if (actionsEl) actionsEl.style.display = allowRetry !== false ? 'flex' : 'none';
+        }
+        function hideAppLoadingError() {
+            const errorEl = document.getElementById('appLoadingError');
+            const actionsEl = document.getElementById('appLoadingActions');
+            const spinner = document.getElementById('appLoadingOverlay') && document.getElementById('appLoadingOverlay').querySelector('.loading-spinner');
+            if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+            if (actionsEl) actionsEl.style.display = 'none';
+            if (spinner) spinner.style.display = '';
+        }
+        window.showSessionOrConnectionError = function(message) {
+            showAppLoading(true, { message: '' });
+            showAppLoadingError(message || 'انقطع الاتصال أو انتهت الجلسة. يرجى إعادة المحاولة أو إعادة تحميل الصفحة.', true);
+        };
+
         // Initialize on page load
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is logged in - show the app
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('appSection').style.display = 'block';
                 document.getElementById('sidebarUserEmail').textContent = user.email;
-                await initializeAppData();
+                showAppLoading(true);
+                hideAppLoadingError();
+                const retryBtn = document.getElementById('appLoadingRetryBtn');
+                const reloadBtn = document.getElementById('appLoadingReloadBtn');
+                const doInit = function() {
+                    hideAppLoadingError();
+                    showAppLoading(true);
+                    const overlay = document.getElementById('appLoadingOverlay');
+                    const spinner = overlay && overlay.querySelector('.loading-spinner');
+                    if (spinner) spinner.style.display = '';
+                    return initializeAppData();
+                };
+                if (retryBtn) retryBtn.onclick = function() { doInit().then(function() { showAppLoading(false); }, function(err) { showAppLoadingError(err && (err.message || err) || 'فشل التحميل'); }); };
+                if (reloadBtn) reloadBtn.onclick = function() { window.location.reload(); };
+                try {
+                    const timeoutPromise = new Promise(function(_, reject) {
+                        setTimeout(function() { reject(new Error('استغرق التحميل وقتاً طويلاً. تحقق من الاتصال بالإنترنت وحاول مرة أخرى.')); }, APP_LOAD_TIMEOUT_MS);
+                    });
+                    await Promise.race([initializeAppData(), timeoutPromise]);
+                    showAppLoading(false);
+                } catch (err) {
+                    console.error('App init error:', err);
+                    showAppLoadingError(err && (err.message || err) || 'حدث خطأ أثناء التحميل', true);
+                }
             } else {
-                // User is not logged in - show login page
                 document.getElementById('loginSection').style.display = 'block';
                 document.getElementById('appSection').style.display = 'none';
-                // Clear login form
                 document.getElementById('email').value = '';
                 document.getElementById('password').value = '';
                 window.adminCheckAttempted = true;
@@ -2011,6 +2207,7 @@
                 'deliver': 'عمليات التسليم',
                 'return': 'استرداد من موقع عمل',
                 'inventory': 'تتبع المخزون',
+                'inventoryVerification': 'التحقق من المخزون وصيانته',
                 'reports': 'التقارير',
                 'users': 'إدارة المستخدمين',
                 'systemTitle': 'نظام المخزون',
@@ -2129,6 +2326,7 @@
                 'deliver': 'Deliver Operations',
                 'return': 'Return Operations',
                 'inventory': 'Inventory Tracking',
+                'inventoryVerification': 'Inventory Verification & Maintenance',
                 'reports': 'Reports',
                 'users': 'Users Management',
                 'systemTitle': 'Inventory System',
@@ -2275,7 +2473,7 @@
             
             // Update menu items
             const menuItems = document.querySelectorAll('.menu-item');
-            const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'workSiteGroups', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'reports', 'users'];
+            const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'workSiteGroups', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'inventoryVerification', 'reports', 'users'];
             menuItems.forEach((item, index) => {
                 if (index < menuKeys.length) {
                     const textNode = Array.from(item.childNodes).find(node => node.nodeType === 3 && node.textContent.trim());
@@ -2315,6 +2513,7 @@
                 'deliver': { selector: '#deliver h2', key: 'deliver' },
                 'return': { selector: '#return h2', key: 'return' },
                 'inventory': { selector: '#inventory h2', key: 'inventory' },
+                'inventoryVerification': { selector: '#inventoryVerification h2', key: 'inventoryVerification' },
                 'reports': { selector: '#reports h2', key: 'reports' },
                 'users': { selector: '#users h2', key: 'users' }
             };
@@ -2375,6 +2574,8 @@
                     window.loadReturns();
                 } else if (currentSectionId === 'inventory' && typeof window.loadInventory === 'function') {
                     window.loadInventory();
+                } else if (currentSectionId === 'inventoryVerification' && typeof window.loadInventoryVerificationSection === 'function') {
+                    window.loadInventoryVerificationSection();
                 } else if (currentSectionId === 'reports' && typeof window.loadReportsSection === 'function') {
                     window.loadReportsSection();
                 } else if (currentSectionId === 'users' && typeof loadUsers === 'function') {
@@ -2424,16 +2625,6 @@
             const canManageSuppliers = isAdmin || (window.currentUserPermissions.canManageSuppliers === true);
             const canManageUnits = isAdmin || (window.currentUserPermissions.canManageUnits === true);
             
-            console.log('Updating buttons visibility:', {
-                isAdmin,
-                canManageMaterials: window.currentUserPermissions.canManageMaterials,
-                canManageWarehouses: window.currentUserPermissions.canManageWarehouses,
-                canManageWorkSites: window.currentUserPermissions.canManageWorkSites,
-                canManageSuppliers: window.currentUserPermissions.canManageSuppliers,
-                canManageUnits: window.currentUserPermissions.canManageUnits,
-                final: { canManageMaterials, canManageWarehouses, canManageWorkSites, canManageSuppliers, canManageUnits }
-            });
-            
             // Materials
             const materialAddBtn = document.querySelector('button[onclick="showMaterialModal()"]');
             if (materialAddBtn) {
@@ -2475,6 +2666,13 @@
             if (deliverAddBtn) deliverAddBtn.style.display = canAddDeliver ? 'inline-block' : 'none';
             if (returnAddBtn) returnAddBtn.style.display = canAddReturn ? 'inline-block' : 'none';
             
+            // التحقق من المخزون وصيانته: إظهار عنصر القائمة للمدير أو الصلاحية الكاملة فقط
+            const hasFullPermissions = isAdmin || (window.currentUserPermissions.permissionType === 'full');
+            const inventoryVerificationMenuItems = document.querySelectorAll('.menu-item[onclick*="inventoryVerification"]');
+            inventoryVerificationMenuItems.forEach(el => {
+                el.style.display = hasFullPermissions ? '' : 'none';
+            });
+            
             // Note: We don't call display functions here to avoid infinite loops
             // Display functions are called separately when needed (e.g., in loadMaterials, loadWarehouses, etc.)
         }
@@ -2503,28 +2701,37 @@
             // Store current section for language updates
             window.currentSection = sectionId;
             
-            // Check password for users section before opening
+            const hasFullPermissions = window.currentUserPermissions && (window.currentUserPermissions.isAdmin || window.currentUserPermissions.permissionType === 'full');
+            
+            // التحقق من المخزون وصيانته: للمدير أو الصلاحية الكاملة فقط
+            if (sectionId === 'inventoryVerification') {
+                if (!hasFullPermissions) {
+                    showAlert('صلاحية المدير مطلوبة للوصول إلى قسم التحقق من المخزون وصيانته.', 'error');
+                    return;
+                }
+            }
+            
+            // الأقسام المحمية بكلمة مرور: إلغاء طلب كلمة المرور لمن لديه صلاحيات كاملة
             if (sectionId === 'users') {
-                checkUsersPassword();
-                return; // Don't proceed with opening the section yet
-            }
-            
-            // Check password for activity log section before opening
-            if (sectionId === 'activityLog') {
-                checkActivityLogPassword();
-                return; // Don't proceed with opening the section yet
-            }
-            
-            // Check password for reports section before opening
-            if (sectionId === 'reports') {
-                checkReportsPassword();
-                return; // Don't proceed with opening the section yet
-            }
-            
-            // Check password for inventory section before opening
-            if (sectionId === 'inventory') {
-                checkInventoryPassword();
-                return; // Don't proceed with opening the section yet
+                if (!hasFullPermissions) {
+                    checkUsersPassword();
+                    return;
+                }
+            } else if (sectionId === 'activityLog') {
+                if (!hasFullPermissions) {
+                    checkActivityLogPassword();
+                    return;
+                }
+            } else if (sectionId === 'reports') {
+                if (!hasFullPermissions) {
+                    checkReportsPassword();
+                    return;
+                }
+            } else if (sectionId === 'inventory') {
+                if (!hasFullPermissions) {
+                    checkInventoryPassword();
+                    return;
+                }
             }
             
             // Hide all sections
@@ -2543,7 +2750,7 @@
             } else {
                 // Find menu item by section ID
                 const menuItems = document.querySelectorAll('.menu-item');
-                const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'workSiteGroups', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'reports', 'users', 'activityLog'];
+                const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'workSiteGroups', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'inventoryVerification', 'reports', 'users', 'activityLog'];
                 const index = menuKeys.indexOf(sectionId);
                 if (index >= 0 && menuItems[index]) {
                     menuItems[index].classList.add('active');
@@ -2568,10 +2775,12 @@
                 loadReturns();
             } else if (sectionId === 'activityLog') {
                 await loadActivityLog();
-            } else if (sectionId === 'workSiteGroups') {
+} else if (sectionId === 'workSiteGroups') {
                 loadWorkSiteGroups();
+            } else if (sectionId === 'inventoryVerification') {
+                loadInventoryVerificationSection();
             }
-            
+
             // Note: updateManagementButtonsVisibility() is called by each load function after data is loaded
             // No need to call it here to avoid duplicate calls and timing conflicts
         };
@@ -4798,11 +5007,25 @@
                 let oldData = null;
                 
                 if (window.editingReceiveId) {
-                    // Edit mode: Get old data, reverse inventory changes, then apply new changes
+                    // Edit mode: Get old data, validate that reversing won't make balance negative, then reverse and apply new
                     const oldReceiveDoc = await getDoc(doc(db, 'transactions', window.editingReceiveId));
                     if (oldReceiveDoc.exists()) {
                         oldData = oldReceiveDoc.data();
-                        
+                        const whId = oldData.warehouseId;
+                        if (oldData.items && oldData.items.length > 0 && typeof window.getComputedWarehouseBalances === 'function') {
+                            const balances = await window.getComputedWarehouseBalances(whId, window.editingReceiveId);
+                            for (const oldItem of oldData.items) {
+                                const mid = oldItem.materialId;
+                                const need = oldItem.quantity || 0;
+                                const available = (balances[mid] != null ? balances[mid] : 0);
+                                if (need > 0 && available < need) {
+                                    const mat = window.materials?.find(m => m.id === mid);
+                                    const name = mat ? mat.name : mid;
+                                    showAlert('لا يمكن التعديل: الرصيد الحالي للمادة «' + name + '» لا يكفي لاسترجاع الكمية السابقة (المحسوب من الحركة: ' + available.toFixed(3) + '، المطلوب استرجاعه: ' + need.toFixed(3) + ').', 'error');
+                                    return;
+                                }
+                            }
+                        }
                         // Reverse old inventory changes (subtract old quantities)
                         if (oldData.items) {
                             for (const oldItem of oldData.items) {
@@ -7340,6 +7563,57 @@
         };
 
         // ========== INVENTORY MANAGEMENT ==========
+        /** Compute warehouse balances from transactions (receive - deliver + return usable). Optionally exclude one transaction (e.g. when editing that receive). */
+        window.getComputedWarehouseBalances = async function(warehouseId, excludeTransactionId) {
+            const db = window.firebaseDb;
+            const { collection, getDocs, query, where } = window.firebaseCollections;
+            if (!db) return {};
+            const balances = {};
+            const add = (mid, qty) => { balances[mid] = (balances[mid] || 0) + qty; };
+            const sub = (mid, qty) => { balances[mid] = (balances[mid] || 0) - qty; };
+            const tr = (docSnap, type) => {
+                if (excludeTransactionId && docSnap.id === excludeTransactionId) return;
+                const d = docSnap.data();
+                const whId = d.warehouseId;
+                const wsId = d.workSiteId;
+                if (whId !== warehouseId) return;
+                d.items?.forEach(item => {
+                    const mid = item.materialId;
+                    const qty = item.quantity || 0;
+                    if (type === 'receive') add(mid, qty);
+                    else if (type === 'deliver') sub(mid, qty);
+                    else if (type === 'return' && item.status === 'قابل للاستخدام') add(mid, qty);
+                });
+            };
+            const receiveSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'receive')));
+            receiveSnap.forEach(d => tr(d, 'receive'));
+            const deliverSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'deliver')));
+            deliverSnap.forEach(d => {
+                if (excludeTransactionId && d.id === excludeTransactionId) return;
+                const data = d.data();
+                if (data.warehouseId !== warehouseId) return;
+                data.items?.forEach(item => {
+                    sub(item.materialId, item.quantity || 0);
+                });
+            });
+            const returnSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'return')));
+            returnSnap.forEach(d => {
+                if (excludeTransactionId && d.id === excludeTransactionId) return;
+                const data = d.data();
+                if (data.warehouseId !== warehouseId) return;
+                data.items?.forEach(item => {
+                    if (item.status === 'قابل للاستخدام') add(item.materialId, item.quantity || 0);
+                });
+            });
+            return balances;
+        };
+
+        /** Get computed balance for one material in a warehouse (from transactions). Use excludeTransactionId when editing that transaction. */
+        window.getComputedWarehouseBalance = async function(warehouseId, materialId, excludeTransactionId) {
+            const balances = await window.getComputedWarehouseBalances(warehouseId, excludeTransactionId);
+            return balances[materialId] != null ? balances[materialId] : 0;
+        };
+
         async function updateInventory(locationId, locationType, materialId, quantity, unit, operation) {
             const { collection, getDocs, query, where, addDoc, updateDoc, doc, Timestamp } = window.firebaseCollections;
             const db = window.firebaseDb;
@@ -7453,6 +7727,317 @@
                 materialSelect.value = currentValue;
             } catch (error) {
                 console.error('Error loading inventory:', error);
+            }
+        };
+
+        // ========== INVENTORY VERIFICATION & MAINTENANCE ==========
+        window.inventoryVerificationDiscrepancies = [];
+
+        window.loadInventoryVerificationSection = function() {
+            const scope = document.getElementById('inventoryVerifyScope');
+            const whSelect = document.getElementById('inventoryVerifyWarehouse');
+            const wsSelect = document.getElementById('inventoryVerifyWorkSite');
+            const matSelect = document.getElementById('inventoryVerifyMaterial');
+            if (!whSelect || !wsSelect || !matSelect) return;
+            whSelect.innerHTML = '<option value="">جميع المستودعات</option>';
+            (window.warehouses || []).forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w.id;
+                opt.textContent = w.name;
+                whSelect.appendChild(opt);
+            });
+            wsSelect.innerHTML = '<option value="">جميع مواقع العمل</option>';
+            (window.workSites || []).forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w.id;
+                opt.textContent = w.name;
+                wsSelect.appendChild(opt);
+            });
+            matSelect.innerHTML = '<option value="">جميع المواد</option>';
+            (window.materials || []).forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.name;
+                matSelect.appendChild(opt);
+            });
+            const whGroup = document.getElementById('inventoryVerifyWarehouseGroup');
+            const wsGroup = document.getElementById('inventoryVerifyWorkSiteGroup');
+            function toggleFilterGroups() {
+                const v = scope ? scope.value : 'all';
+                if (whGroup) whGroup.style.display = (v === 'workSite') ? 'none' : 'block';
+                if (wsGroup) wsGroup.style.display = (v === 'warehouse') ? 'none' : 'block';
+            }
+            if (scope) scope.onchange = toggleFilterGroups;
+            toggleFilterGroups();
+            document.getElementById('inventoryVerifyStatus').textContent = '';
+            document.getElementById('inventoryVerifyTable').style.display = 'none';
+            document.getElementById('inventoryVerifyRepairBtn').style.display = 'none';
+        };
+
+        window.runInventoryVerification = async function() {
+            const statusEl = document.getElementById('inventoryVerifyStatus');
+            const scanBtn = document.getElementById('inventoryVerifyScanBtn');
+            const repairBtn = document.getElementById('inventoryVerifyRepairBtn');
+            const scope = document.getElementById('inventoryVerifyScope').value;
+            const warehouseId = document.getElementById('inventoryVerifyWarehouse').value;
+            const workSiteId = document.getElementById('inventoryVerifyWorkSite').value;
+            const materialId = document.getElementById('inventoryVerifyMaterial').value;
+            try {
+                if (scanBtn) scanBtn.disabled = true;
+                statusEl.textContent = 'جاري الفحص...';
+                const { collection, getDocs, query, where } = window.firebaseCollections;
+                const db = window.firebaseDb;
+                const computed = {};
+                function key(locType, locId, matId) { return locType + '\x01' + locId + '\x01' + matId; }
+                function ensureComputed(k, unit) {
+                    if (!computed[k]) computed[k] = { quantity: 0, unit: unit || '', received: 0, delivered: 0, returned: 0 };
+                }
+                function addToComputed(locType, locId, matId, qty, unit, category) {
+                    const k = key(locType, locId, matId);
+                    ensureComputed(k, unit);
+                    computed[k].quantity += qty;
+                    computed[k].unit = computed[k].unit || unit || '';
+                    if (category === 'receive') computed[k].received += qty;
+                    else if (category === 'deliver') computed[k].delivered += qty;
+                    else if (category === 'return') computed[k].returned += qty;
+                }
+                function subtractFromComputed(locType, locId, matId, qty, unit, category) {
+                    const k = key(locType, locId, matId);
+                    ensureComputed(k, unit);
+                    computed[k].quantity -= qty;
+                    computed[k].unit = computed[k].unit || unit || '';
+                    if (category === 'deliver') computed[k].delivered += qty;
+                    else if (category === 'return') computed[k].returned += qty;
+                }
+                if (scope !== 'workSite') {
+                    const receiveSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'receive')));
+                    receiveSnap.forEach(doc => {
+                        const d = doc.data();
+                        const whId = d.warehouseId;
+                        if (warehouseId && whId !== warehouseId) return;
+                        d.items?.forEach(item => {
+                            const mid = item.materialId;
+                            if (materialId && mid !== materialId) return;
+                            addToComputed('warehouse', whId, mid, item.quantity || 0, item.unit, 'receive');
+                        });
+                    });
+                    const deliverSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'deliver')));
+                    deliverSnap.forEach(doc => {
+                        const d = doc.data();
+                        const whId = d.warehouseId;
+                        const wsId = d.workSiteId;
+                        if (warehouseId && whId !== warehouseId) return;
+                        if (workSiteId && wsId !== workSiteId) return;
+                        d.items?.forEach(item => {
+                            const mid = item.materialId;
+                            if (materialId && mid !== materialId) return;
+                            subtractFromComputed('warehouse', whId, mid, item.quantity || 0, item.unit, 'deliver');
+                            addToComputed('workSite', wsId, mid, item.quantity || 0, item.unit, 'deliver');
+                        });
+                    });
+                    const returnSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'return')));
+                    returnSnap.forEach(doc => {
+                        const d = doc.data();
+                        const whId = d.warehouseId;
+                        const wsId = d.workSiteId;
+                        if (warehouseId && whId !== warehouseId) return;
+                        if (workSiteId && wsId !== workSiteId) return;
+                        d.items?.forEach(item => {
+                            const mid = item.materialId;
+                            if (materialId && mid !== materialId) return;
+                            const qty = item.quantity || 0;
+                            subtractFromComputed('workSite', wsId, mid, qty, item.unit, 'return');
+                            if (item.status === 'قابل للاستخدام') addToComputed('warehouse', whId, mid, qty, item.unit, 'return');
+                        });
+                    });
+                }
+                if (scope === 'workSite') {
+                    const deliverSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'deliver')));
+                    deliverSnap.forEach(doc => {
+                        const d = doc.data();
+                        const wsId = d.workSiteId;
+                        if (workSiteId && wsId !== workSiteId) return;
+                        d.items?.forEach(item => {
+                            const mid = item.materialId;
+                            if (materialId && mid !== materialId) return;
+                            addToComputed('workSite', wsId, mid, item.quantity || 0, item.unit, 'deliver');
+                        });
+                    });
+                    const returnSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'return')));
+                    returnSnap.forEach(doc => {
+                        const d = doc.data();
+                        const wsId = d.workSiteId;
+                        if (workSiteId && wsId !== workSiteId) return;
+                        d.items?.forEach(item => {
+                            const mid = item.materialId;
+                            if (materialId && mid !== materialId) return;
+                            subtractFromComputed('workSite', wsId, mid, item.quantity || 0, item.unit, 'return');
+                        });
+                    });
+                }
+                const stored = {};
+                const invSnap = await getDocs(query(collection(db, 'inventory')));
+                invSnap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const locType = d.locationType;
+                    const locId = d.locationId;
+                    const mid = d.materialId;
+                    if (scope === 'warehouse' && locType !== 'warehouse') return;
+                    if (scope === 'workSite' && locType !== 'workSite') return;
+                    if (warehouseId && locType === 'warehouse' && locId !== warehouseId) return;
+                    if (workSiteId && locType === 'workSite' && locId !== workSiteId) return;
+                    if (materialId && mid !== materialId) return;
+                    const k = key(locType, locId, mid);
+                    stored[k] = { quantity: d.quantity || 0, unit: d.unit || '', docId: docSnap.id };
+                });
+                const discrepancies = [];
+                const allKeys = new Set([...Object.keys(computed), ...Object.keys(stored)]);
+                allKeys.forEach(k => {
+                    const parts = k.split('\x01');
+                    const locType = parts[0];
+                    const locId = parts[1];
+                    const mid = parts[2];
+                    const comp = computed[k];
+                    const st = stored[k];
+                    const compQty = comp ? comp.quantity : 0;
+                    const stQty = st ? st.quantity : 0;
+                    if (Math.abs(compQty - stQty) < 0.0001) return;
+                    const locationName = locType === 'warehouse'
+                        ? (window.warehouses?.find(w => w.id === locId)?.name || locId)
+                        : (window.workSites?.find(w => w.id === locId)?.name || locId);
+                    const material = window.materials?.find(m => m.id === mid);
+                    discrepancies.push({
+                        locationId: locId,
+                        locationType: locType,
+                        locationName: locationName,
+                        materialId: mid,
+                        materialName: material ? material.name : mid,
+                        received: comp ? (comp.received || 0) : 0,
+                        delivered: comp ? (comp.delivered || 0) : 0,
+                        returned: comp ? (comp.returned || 0) : 0,
+                        computedQuantity: compQty,
+                        storedQuantity: stQty,
+                        inventoryDocId: st ? st.docId : null,
+                        unit: (comp || st || {}).unit || ''
+                    });
+                });
+                window.inventoryVerificationDiscrepancies = discrepancies;
+                const tbody = document.getElementById('inventoryVerifyTableBody');
+                const table = document.getElementById('inventoryVerifyTable');
+                tbody.innerHTML = '';
+                if (discrepancies.length === 0) {
+                    statusEl.textContent = 'لا توجد فروقات. الرصيد المسجل مطابق للمحسوب من المعاملات.';
+                    statusEl.style.color = '#27ae60';
+                    table.style.display = 'none';
+                    repairBtn.style.display = 'none';
+                } else {
+                    statusEl.textContent = 'تم العثور على ' + discrepancies.length + ' فرق. راجع الجدول ويمكنك إصلاح الفروقات.';
+                    statusEl.style.color = '#e74c3c';
+                    table.style.display = 'table';
+                    repairBtn.style.display = 'inline-block';
+                    discrepancies.forEach((row, idx) => {
+                        const tr = document.createElement('tr');
+                        const diff = (row.computedQuantity - row.storedQuantity).toFixed(3);
+                        tr.innerHTML = `
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.locationName}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.locationType === 'warehouse' ? 'مستودع' : 'موقع عمل'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.materialName}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${(row.received ?? 0).toFixed(3)}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${(row.delivered ?? 0).toFixed(3)}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${(row.returned ?? 0).toFixed(3)}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.computedQuantity.toFixed(3)}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${row.storedQuantity.toFixed(3)}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${diff}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><input type="checkbox" class="inventory-verify-repair-cb" data-idx="${idx}"></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                console.error('Inventory verification error:', err);
+                showAlert('خطأ أثناء فحص المخزون: ' + (err.message || err), 'error');
+                statusEl.textContent = 'حدث خطأ أثناء الفحص.';
+                statusEl.style.color = '#e74c3c';
+            } finally {
+                if (scanBtn) scanBtn.disabled = false;
+            }
+        };
+
+        window.repairInventoryDiscrepancies = async function() {
+            if (!window.currentUserPermissions || (!window.currentUserPermissions.isAdmin && window.currentUserPermissions.permissionType !== 'full')) {
+                showAlert('صلاحية المدير مطلوبة لتشغيل إصلاح المخزون.', 'error');
+                return;
+            }
+            const list = window.inventoryVerificationDiscrepancies || [];
+            const checked = document.querySelectorAll('.inventory-verify-repair-cb:checked');
+            if (checked.length === 0) {
+                showAlert('لم تختر أي صفوف للإصلاح. حدد الفروقات التي تريد تصحيحها.', 'error');
+                return;
+            }
+            if (!confirm('سيتم تحديث الرصيد المسجل ليطابق الرصيد المحسوب للصفوف المحددة. هل تريد المتابعة؟')) return;
+            const cols = window.firebaseCollections;
+            const db = window.firebaseDb;
+            if (!cols || !db) {
+                showAlert('خطأ: اتصال قاعدة البيانات غير متوفر.', 'error');
+                return;
+            }
+            const { collection, addDoc, updateDoc, doc, Timestamp } = cols;
+            const invRef = collection(db, 'inventory');
+            let fixed = 0;
+            let firstSkipReason = null;
+            try {
+                for (const cb of checked) {
+                    const idx = parseInt(cb.getAttribute('data-idx'), 10);
+                    if (isNaN(idx) || idx < 0 || idx >= list.length) {
+                        if (firstSkipReason === null) firstSkipReason = 'فهرس غير صالح: ' + cb.getAttribute('data-idx');
+                        continue;
+                    }
+                    const row = list[idx];
+                    if (!row || row.locationId == null || row.locationType == null || row.materialId == null) {
+                        if (firstSkipReason === null) firstSkipReason = 'صف ناقص (موقع أو مادة)';
+                        continue;
+                    }
+                    const newQty = Math.max(0, Number(row.computedQuantity) || 0);
+                    const unit = (row.unit != null && row.unit !== '') ? String(row.unit) : '';
+                    if (row.inventoryDocId) {
+                        await updateDoc(doc(db, 'inventory', row.inventoryDocId), {
+                            quantity: newQty,
+                            unit: unit,
+                            updatedAt: Timestamp.now()
+                        });
+                        fixed++;
+                    } else {
+                        if (newQty > 0) {
+                            await addDoc(invRef, {
+                                locationId: row.locationId,
+                                locationType: row.locationType,
+                                materialId: row.materialId,
+                                quantity: newQty,
+                                unit: unit,
+                                createdAt: Timestamp.now(),
+                                updatedAt: Timestamp.now()
+                            });
+                            fixed++;
+                        } else {
+                            if (firstSkipReason === null) firstSkipReason = 'لا يوجد سجل مخزون والرصيد المحسوب صفر (لا يُنشأ سجل)';
+                        }
+                    }
+                }
+                if (fixed > 0) {
+                    showAlert('تم إصلاح ' + fixed + ' سجل بنجاح.', 'success');
+                    try {
+                        await runInventoryVerification();
+                    } catch (scanErr) {
+                        console.warn('Re-scan after repair failed:', scanErr);
+                        showAlert('تم الإصلاح بنجاح، لكن إعادة الفحص فشلت. يمكنك تشغيل "فحص المخزون" يدوياً.', 'error');
+                    }
+                } else {
+                    if (firstSkipReason) console.warn('repairInventoryDiscrepancies: no row fixed. First skip reason:', firstSkipReason);
+                    showAlert('لم يتم تحديث أي سجل. تأكد من اختيار صفوف تحتوي على رصيد محسوب أو سجل مخزون موجود.', 'error');
+                }
+            } catch (err) {
+                console.error('Repair error:', err);
+                showAlert('خطأ أثناء الإصلاح: ' + (err.message || err), 'error');
             }
         };
 
@@ -9762,106 +10347,54 @@
                     return;
                 }
                 
-                console.log('loadCurrentUserPermissions: Loading permissions for user:', {
-                    uid: currentUser.uid,
-                    email: currentUser.email
-                });
-                
                 // Ensure database reference is valid
                 if (!db) {
                     console.error('loadCurrentUserPermissions: Database reference is null');
                     return;
                 }
                 
-                // Search for user document
-                // Strategy: Try by UID first (for new users), then by email (for existing users)
+                // Search for user document: by UID first, then by email (exact and case-insensitive)
                 let userDoc = null;
                 let userData = null;
                 
                 try {
-                    // First: Try to get user document by UID (document ID) - for new users created with setDoc
                     const userDocRef = docRef(db, 'users', currentUser.uid);
                     const docSnapshot = await getDoc(userDocRef);
                     
                     if (docSnapshot.exists()) {
                         userDoc = docSnapshot;
                         userData = docSnapshot.data();
-                        console.log('loadCurrentUserPermissions: Found user by UID (document ID):', currentUser.uid);
                     } else {
-                        console.log('loadCurrentUserPermissions: User document not found by UID, searching by email...');
-                        
-                        // Second: Search by email field (for existing users with random document IDs)
                         const usersRef = collection(db, 'users');
-                        
-                        // Try exact match first (case-sensitive, faster query)
                         let q = query(usersRef, where('email', '==', currentUser.email));
                         let snapshot = await getDocs(q);
                         
                         if (!snapshot.empty) {
                             userDoc = snapshot.docs[0];
                             userData = snapshot.docs[0].data();
-                            console.log('loadCurrentUserPermissions: Found user by email (exact match):', currentUser.email);
-                            console.log('loadCurrentUserPermissions: User document ID:', snapshot.docs[0].id);
                         } else {
-                            // Third: Try case-insensitive search by getting all users (fallback)
-                            console.warn('loadCurrentUserPermissions: No exact email match found, trying case-insensitive search...');
                             const allUsersSnapshot = await getDocs(usersRef);
                             const matchingDocs = [];
-                            
                             allUsersSnapshot.forEach(doc => {
                                 const data = doc.data();
                                 const storedEmail = data.email || '';
-                                // Case-insensitive comparison
-                                if (storedEmail.toLowerCase() === currentUser.email.toLowerCase()) {
-                                    matchingDocs.push(doc);
-                                }
+                                if (storedEmail.toLowerCase() === currentUser.email.toLowerCase()) matchingDocs.push(doc);
                             });
-                            
                             if (matchingDocs.length > 0) {
-                                console.log('loadCurrentUserPermissions: Found user with case-insensitive email match');
                                 userDoc = matchingDocs[0];
                                 userData = matchingDocs[0].data();
-                                console.log('loadCurrentUserPermissions: User document ID:', matchingDocs[0].id);
-                            } else {
-                                console.warn('loadCurrentUserPermissions: User not found by email either');
                             }
                         }
                     }
                 } catch (error) {
-                    console.error('loadCurrentUserPermissions: Error fetching user document:', error);
-                    console.error('loadCurrentUserPermissions: Error details:', {
-                        message: error.message,
-                        code: error.code,
-                        stack: error.stack
-                    });
+                    console.error('loadCurrentUserPermissions: Error fetching user document:', error.message || error);
                 }
                 
-                console.log('loadCurrentUserPermissions: User found:', userDoc !== null, {
-                    uid: currentUser.uid,
-                    email: currentUser.email,
-                    documentId: userDoc ? userDoc.id : 'N/A'
-                });
-                
-                // Log query details for debugging
                 if (!userDoc) {
-                    console.warn('loadCurrentUserPermissions: No user document found for UID:', currentUser.uid, 'or email:', currentUser.email);
-                    console.warn('loadCurrentUserPermissions: This user exists in Authentication but not in Firestore users collection');
-                    console.warn('loadCurrentUserPermissions: User needs to be created in Firestore through "Users Management" section');
+                    console.warn('loadCurrentUserPermissions: المستخدم غير موجود في مجموعة users في Firestore (UID أو البريد). أضفه من قسم إدارة المستخدمين إن لزم.');
                 }
                 
                 if (userDoc && userData) {
-                    
-                    console.log('loadCurrentUserPermissions: Raw user data from database:', {
-                        id: userDoc.id,
-                        email: userData.email,
-                        canManageMaterials: userData.canManageMaterials,
-                        canManageWarehouses: userData.canManageWarehouses,
-                        canManageWorkSites: userData.canManageWorkSites,
-                        canManageSuppliers: userData.canManageSuppliers,
-                        canManageUnits: userData.canManageUnits,
-                        permissionType: userData.permissionType,
-                        fullUserData: userData
-                    });
                     
                     const permissionType = userData.permissionType || (userData.warehouses && userData.warehouses.length > 0 ? 'custom' : 'full');
                     
@@ -9869,20 +10402,6 @@
                     // Handle cases where value might be stored as string "true" or boolean true
                     // IMPORTANT: If field doesn't exist (undefined), treat as false (no permission)
                     // Use !== undefined check instead of hasOwnProperty for Firestore compatibility
-                    
-                    // Debug: Log raw values before processing
-                    console.log('Processing raw permission values:', {
-                        canManageMaterials: userData.canManageMaterials,
-                        canManageMaterialsType: typeof userData.canManageMaterials,
-                        canManageWarehouses: userData.canManageWarehouses,
-                        canManageWarehousesType: typeof userData.canManageWarehouses,
-                        canManageWorkSites: userData.canManageWorkSites,
-                        canManageWorkSitesType: typeof userData.canManageWorkSites,
-                        canManageSuppliers: userData.canManageSuppliers,
-                        canManageSuppliersType: typeof userData.canManageSuppliers,
-                        canManageUnits: userData.canManageUnits,
-                        canManageUnitsType: typeof userData.canManageUnits
-                    });
                     
                     const canManageMaterials = userData.canManageMaterials !== undefined && (userData.canManageMaterials === true || userData.canManageMaterials === 'true');
                     const canManageWarehouses = userData.canManageWarehouses !== undefined && (userData.canManageWarehouses === true || userData.canManageWarehouses === 'true');
@@ -9899,18 +10418,6 @@
                     const returnAdd = userData.returnAdd === true || userData.returnAdd === 'true';
                     const returnEdit = userData.returnEdit === true || userData.returnEdit === 'true';
                     const returnDelete = userData.returnDelete === true || userData.returnDelete === 'true';
-                    
-                    // Debug: Log calculated values
-                    console.log('Calculated permission values:', {
-                        canManageMaterials,
-                        canManageWarehouses,
-                        canManageWorkSites,
-                        canManageSuppliers,
-                        canManageUnits,
-                        receiveAdd, receiveEdit, receiveDelete,
-                        deliverAdd, deliverEdit, deliverDelete,
-                        returnAdd, returnEdit, returnDelete
-                    });
                     
                     window.currentUserPermissions = {
                         warehouses: permissionType === 'full' ? [] : (userData.warehouses || []),
@@ -9929,32 +10436,6 @@
                         returnAdd, returnEdit, returnDelete
                     };
                     
-                    console.log('Loaded user permissions - FINAL RESULT:', {
-                        email: currentUser.email,
-                        permissionType,
-                        isAdmin: window.currentUserPermissions.isAdmin,
-                        permissions: {
-                            canManageMaterials,
-                            canManageWarehouses,
-                            canManageWorkSites,
-                            canManageSuppliers,
-                            canManageUnits
-                        },
-                        rawDataFromDB: {
-                            canManageMaterials: userData.canManageMaterials,
-                            canManageWarehouses: userData.canManageWarehouses,
-                            canManageWorkSites: userData.canManageWorkSites,
-                            canManageSuppliers: userData.canManageSuppliers,
-                            canManageUnits: userData.canManageUnits
-                        },
-                        storedInObject: {
-                            canManageMaterials: window.currentUserPermissions.canManageMaterials,
-                            canManageWarehouses: window.currentUserPermissions.canManageWarehouses,
-                            canManageWorkSites: window.currentUserPermissions.canManageWorkSites,
-                            canManageSuppliers: window.currentUserPermissions.canManageSuppliers,
-                            canManageUnits: window.currentUserPermissions.canManageUnits
-                        }
-                    });
                 } else if (currentUser.email === ADMIN_EMAIL) {
                     // Admin has full access
                     window.currentUserPermissions = {
@@ -9974,11 +10455,7 @@
                         returnAdd: true, returnEdit: true, returnDelete: true
                     };
                 } else {
-                    // No permissions set - default to no access for security
-                    console.warn('loadCurrentUserPermissions: User not found in Firestore, setting default no-access permissions');
-                    console.warn('loadCurrentUserPermissions: User email:', currentUser.email);
-                    console.warn('loadCurrentUserPermissions: Please create this user in Firestore through "Users Management" section');
-                    
+                    // No permissions set - default to no access for security (warning already shown when !userDoc)
                     window.currentUserPermissions = {
                         warehouses: [],
                         workSites: [],
@@ -10033,7 +10510,7 @@
                     returnAdd: false, returnEdit: false, returnDelete: false
                 };
                 
-                console.log('loadCurrentUserPermissions: Set default permissions due to error');
+                // Default permissions set due to error (no console spam)
             }
         }
         
