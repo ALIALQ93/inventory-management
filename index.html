@@ -6167,21 +6167,28 @@
             if (!warehouseId) return;
             
             try {
-                const { collection, getDocs, query, where } = window.firebaseCollections;
-                const db = window.firebaseDb;
-                
-                // Load inventory for this warehouse
-                const inventoryRef = collection(db, 'inventory');
-                const q = query(inventoryRef, where('locationId', '==', warehouseId), where('locationType', '==', 'warehouse'));
-                const snapshot = await getDocs(q);
-                
                 window.warehouseInventory[warehouseId] = {};
-                snapshot.forEach((docSnapshot) => {
-                    const data = docSnapshot.data();
-                    window.warehouseInventory[warehouseId][data.materialId] = data.quantity || 0;
-                });
+                
+                if (type === 'deliver' && typeof window.getComputedWarehouseBalances === 'function') {
+                    const balances = await window.getComputedWarehouseBalances(warehouseId, null);
+                    Object.keys(balances || {}).forEach(mid => {
+                        const qty = balances[mid];
+                        if (qty != null && qty > 0) {
+                            window.warehouseInventory[warehouseId][mid] = qty;
+                        }
+                    });
+                } else {
+                    const { collection, getDocs, query, where } = window.firebaseCollections;
+                    const db = window.firebaseDb;
+                    const inventoryRef = collection(db, 'inventory');
+                    const q = query(inventoryRef, where('locationId', '==', warehouseId), where('locationType', '==', 'warehouse'));
+                    const snapshot = await getDocs(q);
+                    snapshot.forEach((docSnapshot) => {
+                        const data = docSnapshot.data();
+                        window.warehouseInventory[warehouseId][data.materialId] = data.quantity || 0;
+                    });
+                }
 
-                // Clear items list if deliver and not in edit mode
                 if (type === 'deliver' && !window.editingDeliverId) {
                     document.getElementById('deliverItemsList').innerHTML = '';
                 }
