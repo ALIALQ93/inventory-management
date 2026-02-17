@@ -5054,14 +5054,14 @@
                         oldData = oldReceiveDoc.data();
                         const whId = oldData.warehouseId;
                         if (oldData.items && oldData.items.length > 0 && typeof window.getComputedWarehouseBalances === 'function') {
-                            const balances = await window.getComputedWarehouseBalances(whId, window.editingReceiveId);
+                            const balances = await window.getComputedWarehouseBalances(whId, null);
                             for (const oldItem of oldData.items) {
                                 const mid = oldItem.materialId;
-                                const available = (balances[mid] != null ? balances[mid] : 0);
-                                if (available < 0) {
+                                const balance = (balances[mid] != null ? balances[mid] : 0);
+                                if (balance < 0) {
                                     const mat = window.materials?.find(m => m.id === mid);
                                     const name = mat ? mat.name : mid;
-                                    showModalAlert('receiveModal', 'لا يمكن التعديل: الرصيد سيصبح سالباً للمادة «' + name + '». (استلامات + مسترد - مسلم = ' + available.toFixed(3) + '، يجب أن يكون صفر أو أكثر)', 'error');
+                                    showModalAlert('receiveModal', 'لا يمكن التعديل: الرصيد (استلامات + استلام حالي + مسترد - مسلم = ' + balance.toFixed(3) + ') يجب أن يكون صفر أو أكثر للمادة «' + name + '»', 'error');
                                     return;
                                 }
                             }
