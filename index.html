@@ -1115,14 +1115,21 @@
                         </div>
                         <div class="form-group">
                             <label>المادة:</label>
-                            <select id="inventoryMaterial" onchange="loadInventory()">
-                                <option value="">جميع المواد</option>
-                            </select>
+                            <div class="searchable-select" id="inventoryMaterialSelectDiv" style="width: 100%;">
+                                <div class="selected-value" onclick="toggleInventoryMaterialOptions()" style="min-height: 42px; cursor: pointer;">
+                                    <span id="inventoryMaterialDisplay">جميع المواد</span>
+                                </div>
+                                <div class="options-list" id="inventoryMaterialOptions">
+                                    <input type="text" id="inventoryMaterialSearch" placeholder="ابحث بالاسم أو الرمز..." onkeyup="filterInventoryMaterialOptions()" onclick="event.stopPropagation()">
+                                    <div id="inventoryMaterialOptionsList"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <table>
                         <thead>
                             <tr>
+                                <th>رمز المادة</th>
                                 <th>المستودع/الموقع</th>
                                 <th>المادة</th>
                                 <th>الكمية</th>
@@ -1208,6 +1215,18 @@
                                 <select id="warehouseReportSelect" style="padding: 10px; border-radius: 5px; border: none; width: 100%;">
                                     <option value="">جميع المستودعات</option>
                                 </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="color: white; margin-bottom: 8px; font-size: 0.9em;">المادة:</label>
+                                <div class="searchable-select" id="warehouseReportMaterialSelectDiv" style="width: 100%;">
+                                    <div class="selected-value" onclick="toggleWarehouseReportMaterialOptions()" style="min-height: 38px; cursor: pointer; color: #333; background: white; padding: 8px; border-radius: 5px;">
+                                        <span id="warehouseReportMaterialDisplay">جميع المواد</span>
+                                    </div>
+                                    <div class="options-list" id="warehouseReportMaterialOptions">
+                                        <input type="text" id="warehouseReportMaterialSearch" placeholder="ابحث بالاسم أو الرمز..." onkeyup="filterWarehouseReportMaterialOptions()" onclick="event.stopPropagation()" style="color: #333; background-color: white;">
+                                        <div id="warehouseReportMaterialOptionsList"></div>
+                                    </div>
+                                </div>
                             </div>
                             <button class="btn btn-primary" onclick="loadWarehouseInventoryReport()" style="width: 100%; background: white; color: #667eea; font-size: 0.9em; padding: 10px;">
                                 عرض التقرير
@@ -1645,6 +1664,7 @@
                 <h2 id="receiveModalTitle">إضافة استلام جديد</h2>
                 <button class="close" onclick="closeModal('receiveModal')">&times;</button>
             </div>
+            <div class="alert modal-alert" id="receiveModalAlert" style="display: none; margin: 15px 20px;"></div>
             <form id="receiveForm">
                 <div class="form-section">
                     <div class="form-section-title receive-title">المعلومات الأساسية</div>
@@ -1713,6 +1733,7 @@
                 <h2 id="deliverModalTitle">إضافة تسليم جديد</h2>
                 <button class="close" onclick="closeModal('deliverModal')">&times;</button>
             </div>
+            <div class="alert modal-alert" id="deliverModalAlert" style="display: none; margin: 15px 20px;"></div>
             <form id="deliverForm">
                 <div class="form-section">
                     <div class="form-section-title deliver-title">المعلومات الأساسية</div>
@@ -1774,6 +1795,7 @@
                 <h2 id="returnModalTitle">إضافة استرداد جديد</h2>
                 <button class="close" onclick="closeModal('returnModal')">&times;</button>
             </div>
+            <div class="alert modal-alert" id="returnModalAlert" style="display: none; margin: 15px 20px;"></div>
             <form id="returnForm">
                 <div class="form-section">
                     <div class="form-section-title return-title">المعلومات الأساسية</div>
@@ -1950,7 +1972,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, setDoc, query, where, orderBy, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, enableIndexedDbPersistence, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, setDoc, query, where, orderBy, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         // Make getDoc available globally
         window.getDoc = getDoc;
@@ -1976,6 +1998,10 @@
         // Use local persistence: remember user across sessions (stay logged in after closing browser)
         setPersistence(auth, browserLocalPersistence).catch(() => {});
         const db = getFirestore(app);
+        enableIndexedDbPersistence(db).catch(function(err) {
+            if (err.code === 'failed-precondition') console.warn('Firestore: التخزين المؤقت غير مفعّل (عدة نوافذ مفتوحة).');
+            else if (err.code === 'unimplemented') console.warn('Firestore: المتصفح لا يدعم التخزين المؤقت المحلي.');
+        });
 
         // Make these available globally
         window.firebaseAuth = auth;
@@ -2684,6 +2710,19 @@
             alert.className = 'alert alert-' + type + ' show';
             setTimeout(() => {
                 alert.classList.remove('show');
+            }, 5000);
+        }
+
+        function showModalAlert(modalId, message, type) {
+            const alertId = modalId + 'Alert';
+            const alertEl = document.getElementById(alertId);
+            if (!alertEl) return;
+            alertEl.textContent = message;
+            alertEl.className = 'alert alert-' + type + ' modal-alert show';
+            alertEl.style.display = 'block';
+            setTimeout(() => {
+                alertEl.classList.remove('show');
+                alertEl.style.display = 'none';
             }, 5000);
         }
 
@@ -4118,6 +4157,8 @@
             }
             const modal = document.getElementById('receiveModal');
             const form = document.getElementById('receiveForm');
+            const receiveAlertEl = document.getElementById('receiveModalAlert');
+            if (receiveAlertEl) { receiveAlertEl.style.display = 'none'; receiveAlertEl.textContent = ''; }
             window.editingReceiveId = receiveId;
             
             // Ensure data is loaded
@@ -4911,11 +4952,11 @@
             const isEdit = !!window.editingReceiveId;
             if (p && !p.isAdmin) {
                 if (isEdit && !p.receiveEdit) {
-                    showAlert('ليس لديك صلاحية تعديل عمليات الاستلام', 'error');
+                    showModalAlert('receiveModal', 'ليس لديك صلاحية تعديل عمليات الاستلام', 'error');
                     return;
                 }
                 if (!isEdit && !p.receiveAdd) {
-                    showAlert('ليس لديك صلاحية إضافة عمليات الاستلام', 'error');
+                    showModalAlert('receiveModal', 'ليس لديك صلاحية إضافة عمليات الاستلام', 'error');
                     return;
                 }
             }
@@ -4967,7 +5008,7 @@
             });
 
             if (items.length === 0) {
-                showAlert('الرجاء إضافة مادة واحدة على الأقل', 'error');
+                showModalAlert('receiveModal', 'الرجاء إضافة مادة واحدة على الأقل', 'error');
                 return;
             }
 
@@ -4977,17 +5018,17 @@
             const receiveDate = document.getElementById('receiveDate').value;
             
             if (!supplierId) {
-                showAlert('الرجاء اختيار المزود', 'error');
+                showModalAlert('receiveModal', 'الرجاء اختيار المزود', 'error');
                 return;
             }
             
             if (!warehouseId) {
-                showAlert('الرجاء اختيار المستودع', 'error');
+                showModalAlert('receiveModal', 'الرجاء اختيار المستودع', 'error');
                 return;
             }
             
             if (!receiveDate) {
-                showAlert('الرجاء إدخال تاريخ الاستلام', 'error');
+                showModalAlert('receiveModal', 'الرجاء إدخال تاريخ الاستلام', 'error');
                 return;
             }
 
@@ -5007,7 +5048,7 @@
                 let oldData = null;
                 
                 if (window.editingReceiveId) {
-                    // Edit mode: Get old data, validate that reversing won't make balance negative, then reverse and apply new
+                    // Edit mode: validate (استلامات + مسترد - مسلم) >= 0 for each material after excluding this receive, then reverse and apply new
                     const oldReceiveDoc = await getDoc(doc(db, 'transactions', window.editingReceiveId));
                     if (oldReceiveDoc.exists()) {
                         oldData = oldReceiveDoc.data();
@@ -5016,12 +5057,11 @@
                             const balances = await window.getComputedWarehouseBalances(whId, window.editingReceiveId);
                             for (const oldItem of oldData.items) {
                                 const mid = oldItem.materialId;
-                                const need = oldItem.quantity || 0;
                                 const available = (balances[mid] != null ? balances[mid] : 0);
-                                if (need > 0 && available < need) {
+                                if (available < 0) {
                                     const mat = window.materials?.find(m => m.id === mid);
                                     const name = mat ? mat.name : mid;
-                                    showAlert('لا يمكن التعديل: الرصيد الحالي للمادة «' + name + '» لا يكفي لاسترجاع الكمية السابقة (المحسوب من الحركة: ' + available.toFixed(3) + '، المطلوب استرجاعه: ' + need.toFixed(3) + ').', 'error');
+                                    showModalAlert('receiveModal', 'لا يمكن التعديل: الرصيد سيصبح سالباً للمادة «' + name + '». (استلامات + مسترد - مسلم = ' + available.toFixed(3) + '، يجب أن يكون صفر أو أكثر)', 'error');
                                     return;
                                 }
                             }
@@ -5073,7 +5113,7 @@
                 await loadReceives(); // Reload receives table
             } catch (error) {
                 console.error('Error saving receive:', error);
-                showAlert('خطأ في حفظ عملية الاستلام', 'error');
+                showModalAlert('receiveModal', 'خطأ في حفظ عملية الاستلام', 'error');
             }
         }
 
@@ -5103,6 +5143,22 @@
                 }
 
                 const data = receiveDoc.data();
+
+                // Validate: (استلامات + مسترد - مسلم) >= 0 for each material after removing this receive
+                if (data.items && data.items.length > 0 && typeof window.getComputedWarehouseBalances === 'function') {
+                    const whId = data.warehouseId;
+                    const balances = await window.getComputedWarehouseBalances(whId, receiveId);
+                    for (const item of data.items) {
+                        const mid = item.materialId;
+                        const available = (balances[mid] != null ? balances[mid] : 0);
+                        if (available < 0) {
+                            const mat = window.materials?.find(m => m.id === mid);
+                            const name = mat ? mat.name : mid;
+                            showAlert('لا يمكن الحذف: الرصيد سيصبح سالباً للمادة «' + name + '». (استلامات + مسترد - مسلم = ' + available.toFixed(3) + '، يجب أن يكون صفر أو أكثر)', 'error');
+                            return;
+                        }
+                    }
+                }
 
                 // Reverse inventory changes (subtract quantities from inventory)
                 if (data.items) {
@@ -5182,6 +5238,8 @@
             }
             const modal = document.getElementById('deliverModal');
             const form = document.getElementById('deliverForm');
+            const deliverAlertEl = document.getElementById('deliverModalAlert');
+            if (deliverAlertEl) { deliverAlertEl.style.display = 'none'; deliverAlertEl.textContent = ''; }
             window.editingDeliverId = deliverId;
             
             // Ensure data is loaded
@@ -5664,7 +5722,7 @@
         window.addDeliverItem = function() {
             const warehouseId = document.getElementById('deliverWarehouse').value;
             if (!warehouseId) {
-                showAlert('الرجاء اختيار المستودع أولاً', 'error');
+                showModalAlert('deliverModal', 'الرجاء اختيار المستودع أولاً', 'error');
                 return;
             }
 
@@ -5740,7 +5798,7 @@
                 const availableBaseQty = parseFloat(this.dataset.availableBaseQty) || 0;
                 if (baseQty > availableBaseQty) {
                     this.style.borderColor = 'red';
-                    showAlert(`الكمية المطلوبة (${baseQty.toFixed(3)}) أكبر من المتوفر (${availableBaseQty.toFixed(3)})`, 'error');
+                    showModalAlert('deliverModal', `الكمية المطلوبة (${baseQty.toFixed(3)}) أكبر من المتوفر (${availableBaseQty.toFixed(3)})`, 'error');
                 } else {
                     this.style.borderColor = '';
                 }
@@ -6004,7 +6062,7 @@
                 const availableBaseQty = parseFloat(this.dataset.availableBaseQty) || 0;
                 if (baseQty > availableBaseQty) {
                     this.style.borderColor = 'red';
-                    showAlert(`الكمية المطلوبة (${baseQty.toFixed(3)}) أكبر من المتوفر (${availableBaseQty.toFixed(3)})`, 'error');
+                    showModalAlert('deliverModal', `الكمية المطلوبة (${baseQty.toFixed(3)}) أكبر من المتوفر (${availableBaseQty.toFixed(3)})`, 'error');
                 } else {
                     this.style.borderColor = '';
                 }
@@ -6138,11 +6196,11 @@
             const isEdit = !!window.editingDeliverId;
             if (p && !p.isAdmin) {
                 if (isEdit && !p.deliverEdit) {
-                    showAlert('ليس لديك صلاحية تعديل عمليات التسليم', 'error');
+                    showModalAlert('deliverModal', 'ليس لديك صلاحية تعديل عمليات التسليم', 'error');
                     return;
                 }
                 if (!isEdit && !p.deliverAdd) {
-                    showAlert('ليس لديك صلاحية إضافة عمليات التسليم', 'error');
+                    showModalAlert('deliverModal', 'ليس لديك صلاحية إضافة عمليات التسليم', 'error');
                     return;
                 }
             }
@@ -6159,17 +6217,17 @@
             const deliverDate = document.getElementById('deliverDate').value;
             
             if (!warehouseId) {
-                showAlert('الرجاء اختيار المستودع', 'error');
+                showModalAlert('deliverModal', 'الرجاء اختيار المستودع', 'error');
                 return;
             }
             
             if (!workSiteId) {
-                showAlert('الرجاء اختيار موقع العمل', 'error');
+                showModalAlert('deliverModal', 'الرجاء اختيار موقع العمل', 'error');
                 return;
             }
             
             if (!deliverDate) {
-                showAlert('الرجاء إدخال تاريخ التسليم', 'error');
+                showModalAlert('deliverModal', 'الرجاء إدخال تاريخ التسليم', 'error');
                 return;
             }
             
@@ -6255,12 +6313,12 @@
             }
             
             if (validationError) {
-                showAlert(validationError, 'error');
+                showModalAlert('deliverModal', validationError, 'error');
                 return;
             }
 
             if (items.length === 0) {
-                showAlert('الرجاء إضافة مادة واحدة على الأقل', 'error');
+                showModalAlert('deliverModal', 'الرجاء إضافة مادة واحدة على الأقل', 'error');
                 return;
             }
 
@@ -6331,7 +6389,7 @@
                 await loadDelivers(); // Reload delivers table
             } catch (error) {
                 console.error('Error saving deliver:', error);
-                showAlert('خطأ في حفظ عملية التسليم', 'error');
+                showModalAlert('deliverModal', 'خطأ في حفظ عملية التسليم', 'error');
             }
         }
 
@@ -6390,6 +6448,8 @@
             }
             const modal = document.getElementById('returnModal');
             const form = document.getElementById('returnForm');
+            const returnAlertEl = document.getElementById('returnModalAlert');
+            if (returnAlertEl) { returnAlertEl.style.display = 'none'; returnAlertEl.textContent = ''; }
             window.editingReturnId = returnId;
             
             // Ensure data is loaded
@@ -6532,7 +6592,7 @@
         window.addReturnItem = function() {
             const workSiteId = document.getElementById('returnWorkSite').value;
             if (!workSiteId) {
-                showAlert('الرجاء اختيار موقع العمل أولاً', 'error');
+                showModalAlert('returnModal', 'الرجاء اختيار موقع العمل أولاً', 'error');
                 return;
             }
 
@@ -7032,11 +7092,11 @@
             const isEdit = !!window.editingReturnId;
             if (p && !p.isAdmin) {
                 if (isEdit && !p.returnEdit) {
-                    showAlert('ليس لديك صلاحية تعديل عمليات الاسترداد', 'error');
+                    showModalAlert('returnModal', 'ليس لديك صلاحية تعديل عمليات الاسترداد', 'error');
                     return;
                 }
                 if (!isEdit && !p.returnAdd) {
-                    showAlert('ليس لديك صلاحية إضافة عمليات الاسترداد', 'error');
+                    showModalAlert('returnModal', 'ليس لديك صلاحية إضافة عمليات الاسترداد', 'error');
                     return;
                 }
             }
@@ -7114,12 +7174,12 @@
             }
             
             if (validationError) {
-                showAlert(validationError, 'error');
+                showModalAlert('returnModal', validationError, 'error');
                 return;
             }
 
             if (items.length === 0) {
-                showAlert('الرجاء إضافة مادة واحدة على الأقل', 'error');
+                showModalAlert('returnModal', 'الرجاء إضافة مادة واحدة على الأقل', 'error');
                 return;
             }
 
@@ -7208,7 +7268,7 @@
                 await loadReturns();
             } catch (error) {
                 console.error('Error saving return:', error);
-                showAlert('خطأ في حفظ عملية الاسترداد', 'error');
+                showModalAlert('returnModal', 'خطأ في حفظ عملية الاسترداد', 'error');
             }
         }
 
@@ -7660,13 +7720,94 @@
             }
         }
 
+        window.inventorySelectedMaterials = new Set();
+
+        window.toggleInventoryMaterialOptions = function() {
+            const options = document.getElementById('inventoryMaterialOptions');
+            if (options) options.classList.toggle('show');
+        };
+
+        window.filterInventoryMaterialOptions = function() {
+            const search = (document.getElementById('inventoryMaterialSearch')?.value || '').toLowerCase().trim();
+            const options = document.querySelectorAll('#inventoryMaterialOptionsList .option-item');
+            options.forEach(option => {
+                const text = (option.textContent || '').toLowerCase();
+                const match = !search || text.includes(search);
+                option.style.display = match ? 'block' : 'none';
+            });
+        };
+
+        window.selectInventoryMaterial = function(materialId) {
+            if (!window.inventorySelectedMaterials) window.inventorySelectedMaterials = new Set();
+            if (window.inventorySelectedMaterials.has(materialId)) {
+                window.inventorySelectedMaterials.delete(materialId);
+            } else {
+                window.inventorySelectedMaterials.add(materialId);
+            }
+            window.updateInventoryMaterialDisplay();
+            window.populateInventoryMaterialOptions();
+            window.filterInventoryMaterialOptions();
+            window.loadInventory();
+        };
+
+        window.clearInventoryMaterialSelection = function() {
+            window.inventorySelectedMaterials = new Set();
+            const opts = document.getElementById('inventoryMaterialOptions');
+            if (opts) opts.classList.remove('show');
+            window.updateInventoryMaterialDisplay();
+            window.populateInventoryMaterialOptions();
+            window.loadInventory();
+        };
+
+        window.updateInventoryMaterialDisplay = function() {
+            const display = document.getElementById('inventoryMaterialDisplay');
+            if (!display) return;
+            const count = window.inventorySelectedMaterials?.size || 0;
+            if (count === 0) {
+                display.textContent = 'جميع المواد';
+            } else {
+                const names = [];
+                (window.materials || []).forEach(m => {
+                    if (window.inventorySelectedMaterials.has(m.id)) {
+                        names.push((m.code ? m.code + ' - ' : '') + m.name);
+                    }
+                });
+                display.textContent = names.length > 3 ? count + ' مواد محددة' : names.join('، ') || count + ' مواد محددة';
+            }
+        };
+
+        window.populateInventoryMaterialOptions = function() {
+            const list = document.getElementById('inventoryMaterialOptionsList');
+            if (!list) return;
+            list.innerHTML = '';
+            const searchInput = document.getElementById('inventoryMaterialSearch');
+            if (searchInput) searchInput.value = '';
+            const allOpt = document.createElement('div');
+            allOpt.className = 'option-item' + (!window.inventorySelectedMaterials?.size ? ' selected' : '');
+            allOpt.textContent = 'جميع المواد';
+            allOpt.style.fontWeight = 'bold';
+            allOpt.style.borderBottom = '1px solid #eee';
+            allOpt.style.paddingBottom = '8px';
+            allOpt.style.marginBottom = '4px';
+            allOpt.onclick = function(e) { e.stopPropagation(); window.clearInventoryMaterialSelection(); };
+            list.appendChild(allOpt);
+            (window.materials || []).forEach(m => {
+                const opt = document.createElement('div');
+                opt.className = 'option-item' + (window.inventorySelectedMaterials?.has(m.id) ? ' selected' : '');
+                opt.textContent = (m.code ? m.code + ' - ' : '') + m.name;
+                opt.dataset.value = m.id;
+                opt.onclick = function(e) { e.stopPropagation(); window.selectInventoryMaterial(m.id); };
+                list.appendChild(opt);
+            });
+        };
+
         window.loadInventory = async function() {
             try {
                 const { collection, getDocs, query, where } = window.firebaseCollections;
                 const db = window.firebaseDb;
 
                 const warehouseFilter = document.getElementById('inventoryWarehouse').value;
-                const materialFilter = document.getElementById('inventoryMaterial').value;
+                const materialFilterIds = Array.from(window.inventorySelectedMaterials || []);
 
                 const inventoryRef = collection(db, 'inventory');
                 let q = query(inventoryRef);
@@ -7676,13 +7817,11 @@
                 }
 
                 const snapshot = await getDocs(q);
-                const tbody = document.getElementById('inventoryTableBody');
-                tbody.innerHTML = '';
+                const rows = [];
 
                 snapshot.forEach((docSnapshot) => {
                     const data = docSnapshot.data();
-                    
-                    if (materialFilter && data.materialId !== materialFilter) return;
+                    if (materialFilterIds.length > 0 && !materialFilterIds.includes(data.materialId)) return;
 
                     const material = window.materials.find(m => m.id === data.materialId);
                     const location = data.locationType === 'warehouse'
@@ -7690,8 +7829,6 @@
                         : window.workSites.find(w => w.id === data.locationId);
 
                     if (!material || !location) return;
-                    
-                    // Filter by permissions
                     if (data.locationType === 'warehouse') {
                         if (window.hasWarehouseAccess && !window.hasWarehouseAccess(data.locationId)) return;
                     } else if (data.locationType === 'workSite') {
@@ -7699,32 +7836,37 @@
                     }
 
                     const minStock = material.minStock || 0;
-                    const statusBadge = data.quantity <= minStock 
-                        ? '<span class="badge badge-danger">منخفض</span>'
-                        : '<span class="badge badge-success">طبيعي</span>';
+                    const qty = parseFloat(data.quantity) || 0;
+                    const statusBadge = qty < 0
+                        ? '<span class="badge badge-danger">سالب</span>'
+                        : (qty <= minStock ? '<span class="badge badge-danger">منخفض</span>' : '<span class="badge badge-success">طبيعي</span>');
+                    const qtyStyle = qty < 0 ? ' style="color: red; font-weight: bold;"' : '';
+                    rows.push({ data, material, location, statusBadge, qtyStyle, qtyStr: qty.toFixed(3) });
+                });
 
+                rows.sort((a, b) => {
+                    const codeA = (a.material.code || '').toString().toLowerCase();
+                    const codeB = (b.material.code || '').toString().toLowerCase();
+                    return codeA.localeCompare(codeB, 'ar');
+                });
+
+                const tbody = document.getElementById('inventoryTableBody');
+                tbody.innerHTML = '';
+                rows.forEach(({ data, material, location, statusBadge, qtyStyle, qtyStr }) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
+                        <td>${material.code || '-'}</td>
                         <td>${location.name} (${data.locationType === 'warehouse' ? 'مستودع' : 'موقع عمل'})</td>
                         <td>${material.name}</td>
-                        <td>${data.quantity.toFixed(3)}</td>
+                        <td${qtyStyle}>${qtyStr}</td>
                         <td>${data.unit || material.unit || '-'}</td>
                         <td>${statusBadge}</td>
                     `;
                     tbody.appendChild(row);
                 });
 
-                // Populate material filter
-                const materialSelect = document.getElementById('inventoryMaterial');
-                const currentValue = materialSelect.value;
-                materialSelect.innerHTML = '<option value="">جميع المواد</option>';
-                window.materials.forEach(m => {
-                    const option = document.createElement('option');
-                    option.value = m.id;
-                    option.textContent = m.name;
-                    materialSelect.appendChild(option);
-                });
-                materialSelect.value = currentValue;
+                window.populateInventoryMaterialOptions();
+                window.updateInventoryMaterialDisplay();
             } catch (error) {
                 console.error('Error loading inventory:', error);
             }
@@ -8205,15 +8347,96 @@
                     });
                     warehouseMovementSelect.value = currentValue;
                 }
+                if (typeof window.populateWarehouseReportMaterialOptions === 'function') {
+                    window.populateWarehouseReportMaterialOptions();
+                    window.updateWarehouseReportMaterialDisplay();
+                }
             } catch (error) {
                 console.error('Error loading reports section:', error);
             }
+        };
+
+        window.warehouseReportSelectedMaterials = new Set();
+
+        window.toggleWarehouseReportMaterialOptions = function() {
+            const options = document.getElementById('warehouseReportMaterialOptions');
+            if (options) options.classList.toggle('show');
+        };
+
+        window.filterWarehouseReportMaterialOptions = function() {
+            const search = (document.getElementById('warehouseReportMaterialSearch')?.value || '').toLowerCase().trim();
+            document.querySelectorAll('#warehouseReportMaterialOptionsList .option-item').forEach(option => {
+                const text = (option.textContent || '').toLowerCase();
+                option.style.display = !search || text.includes(search) ? 'block' : 'none';
+            });
+        };
+
+        window.selectWarehouseReportMaterial = function(materialId) {
+            if (!window.warehouseReportSelectedMaterials) window.warehouseReportSelectedMaterials = new Set();
+            if (window.warehouseReportSelectedMaterials.has(materialId)) {
+                window.warehouseReportSelectedMaterials.delete(materialId);
+            } else {
+                window.warehouseReportSelectedMaterials.add(materialId);
+            }
+            window.updateWarehouseReportMaterialDisplay();
+            window.populateWarehouseReportMaterialOptions();
+            window.filterWarehouseReportMaterialOptions();
+        };
+
+        window.clearWarehouseReportMaterialSelection = function() {
+            window.warehouseReportSelectedMaterials = new Set();
+            document.getElementById('warehouseReportMaterialOptions')?.classList.remove('show');
+            window.updateWarehouseReportMaterialDisplay();
+            window.populateWarehouseReportMaterialOptions();
+        };
+
+        window.updateWarehouseReportMaterialDisplay = function() {
+            const display = document.getElementById('warehouseReportMaterialDisplay');
+            if (!display) return;
+            const count = window.warehouseReportSelectedMaterials?.size || 0;
+            if (count === 0) {
+                display.textContent = 'جميع المواد';
+            } else {
+                const names = [];
+                (window.materials || []).forEach(m => {
+                    if (window.warehouseReportSelectedMaterials.has(m.id)) {
+                        names.push((m.code ? m.code + ' - ' : '') + m.name);
+                    }
+                });
+                display.textContent = names.length > 3 ? count + ' مواد محددة' : names.join('، ') || count + ' مواد محددة';
+            }
+        };
+
+        window.populateWarehouseReportMaterialOptions = function() {
+            const list = document.getElementById('warehouseReportMaterialOptionsList');
+            if (!list) return;
+            list.innerHTML = '';
+            const searchInput = document.getElementById('warehouseReportMaterialSearch');
+            if (searchInput) searchInput.value = '';
+            const allOpt = document.createElement('div');
+            allOpt.className = 'option-item' + (!window.warehouseReportSelectedMaterials?.size ? ' selected' : '');
+            allOpt.textContent = 'جميع المواد';
+            allOpt.style.fontWeight = 'bold';
+            allOpt.style.borderBottom = '1px solid #eee';
+            allOpt.style.paddingBottom = '8px';
+            allOpt.style.marginBottom = '4px';
+            allOpt.onclick = function(e) { e.stopPropagation(); window.clearWarehouseReportMaterialSelection(); };
+            list.appendChild(allOpt);
+            (window.materials || []).forEach(m => {
+                const opt = document.createElement('div');
+                opt.className = 'option-item' + (window.warehouseReportSelectedMaterials?.has(m.id) ? ' selected' : '');
+                opt.textContent = (m.code ? m.code + ' - ' : '') + m.name;
+                opt.dataset.value = m.id;
+                opt.onclick = function(e) { e.stopPropagation(); window.selectWarehouseReportMaterial(m.id); };
+                list.appendChild(opt);
+            });
         };
 
         // Warehouse Inventory Report
         window.loadWarehouseInventoryReport = async function() {
             try {
                 const warehouseId = document.getElementById('warehouseReportSelect').value;
+                const materialFilterIds = Array.from(window.warehouseReportSelectedMaterials || []);
                 const { collection, getDocs, query, where } = window.firebaseCollections;
                 const db = window.firebaseDb;
                 
@@ -8403,10 +8626,17 @@
                 let html = '';
                 sortedWarehouseIds.forEach(whId => {
                     const warehouse = window.warehouses.find(w => w.id === whId);
-                    const items = warehousesDataArray[whId].sort((a, b) => {
+                    let items = warehousesDataArray[whId];
+                    if (materialFilterIds.length > 0) {
+                        items = items.filter(item => materialFilterIds.includes(item.materialId));
+                    }
+                    if (items.length === 0) return;
+                    items = items.sort((a, b) => {
                         const matA = window.materials.find(m => m.id === a.materialId);
                         const matB = window.materials.find(m => m.id === b.materialId);
-                        return (matA?.name || '').localeCompare(matB?.name || '');
+                        const codeA = (matA?.code || '').toString().toLowerCase();
+                        const codeB = (matB?.code || '').toString().toLowerCase();
+                        return codeA.localeCompare(codeB, 'ar');
                     });
                     
                     html += `
@@ -8445,6 +8675,8 @@
                             const returned = parseFloat(item.returned) || 0;
                             const currentUsable = parseFloat(item.currentUsable) || 0;
                             const currentDamaged = parseFloat(item.currentDamaged) || 0;
+                            const usableStyle = currentUsable < 0 ? 'color: red; font-weight: bold;' : (currentUsable === 0 ? 'color: #999;' : 'color: #27ae60; font-weight: bold;');
+                            const damagedStyle = currentDamaged < 0 ? 'color: red; font-weight: bold;' : (currentDamaged === 0 ? 'color: #999;' : 'color: #e74c3c; font-weight: bold;');
                             
                             html += `
                                 <tr>
@@ -8455,8 +8687,8 @@
                                     <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #27ae60; font-weight: bold;">${received.toFixed(3)}</td>
                                     <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #e74c3c; font-weight: bold;">${delivered.toFixed(3)}</td>
                                     <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #f39c12; font-weight: bold;">${returned.toFixed(3)}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #27ae60; font-weight: bold; ${currentUsable === 0 ? 'color: #999;' : ''}">${currentUsable.toFixed(3)}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #e74c3c; font-weight: bold; ${currentDamaged === 0 ? 'color: #999;' : ''}">${currentDamaged.toFixed(3)}</td>
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; ${usableStyle}">${currentUsable.toFixed(3)}</td>
+                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; ${damagedStyle}">${currentDamaged.toFixed(3)}</td>
                                     <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${item.unit || material.unit || '-'}</td>
                                 </tr>
                             `;
@@ -8488,7 +8720,11 @@
                     `;
                 });
                 
-                contentDiv.innerHTML = html;
+                if (!html) {
+                    contentDiv.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">لا توجد مواد تطابق الاختيار في المستودعات المحددة</p>';
+                } else {
+                    contentDiv.innerHTML = html;
+                }
                 reportDiv.style.display = 'block';
                 window.warehouseInventoryReportData = { warehousesData: warehousesDataArray, warehouseId };
             } catch (error) {
