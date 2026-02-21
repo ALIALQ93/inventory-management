@@ -1278,12 +1278,23 @@
                                 </select>
                             </div>
                             <div class="form-group" style="margin-bottom: 10px;">
-                                <label style="color: white; margin-bottom: 5px; font-size: 0.85em;">من تاريخ:</label>
-                                <input type="date" id="materialMovementFromDate" style="padding: 8px; border-radius: 5px; border: none; width: 100%; font-size: 0.9em;">
-                            </div>
-                            <div class="form-group" style="margin-bottom: 15px;">
-                                <label style="color: white; margin-bottom: 5px; font-size: 0.85em;">إلى تاريخ:</label>
-                                <input type="date" id="materialMovementToDate" style="padding: 8px; border-radius: 5px; border: none; width: 100%; font-size: 0.9em;">
+                                <label style="color: white; margin-bottom: 8px; font-size: 0.85em; display: block;">الفترة:</label>
+                                <div style="margin-bottom: 8px;">
+                                    <label style="color: white; font-size: 0.9em; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
+                                        <input type="radio" id="materialMovementPeriodAll" name="materialMovementPeriod" value="all" checked onchange="if(window.toggleMaterialMovementDateInputs)window.toggleMaterialMovementDateInputs()">
+                                        جميع الفترات
+                                    </label>
+                                    <label style="color: white; font-size: 0.9em; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                        <input type="radio" id="materialMovementPeriodRange" name="materialMovementPeriod" value="range" onchange="if(window.toggleMaterialMovementDateInputs)window.toggleMaterialMovementDateInputs()">
+                                        فترة محددة
+                                    </label>
+                                </div>
+                                <div id="materialMovementDateInputsContainer" style="display: none; margin-top: 8px;">
+                                    <label style="color: white; margin-bottom: 5px; font-size: 0.85em;">من تاريخ:</label>
+                                    <input type="date" id="materialMovementFromDate" style="padding: 8px; border-radius: 5px; border: none; width: 100%; font-size: 0.9em; margin-bottom: 8px;">
+                                    <label style="color: white; margin-bottom: 5px; font-size: 0.85em;">إلى تاريخ:</label>
+                                    <input type="date" id="materialMovementToDate" style="padding: 8px; border-radius: 5px; border: none; width: 100%; font-size: 0.9em;">
+                                </div>
                             </div>
                             <button class="btn btn-primary" onclick="loadMaterialMovementReport()" style="width: 100%; background: white; color: #4facfe; font-size: 0.9em; padding: 10px;">
                                 عرض التقرير
@@ -1972,7 +1983,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, enableIndexedDbPersistence, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, setDoc, query, where, orderBy, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, enableIndexedDbPersistence, initializeFirestore, persistentLocalCache, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, setDoc, query, where, orderBy, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         // Make getDoc available globally
         window.getDoc = getDoc;
@@ -1997,11 +2008,25 @@
         const auth = getAuth(app);
         // Use local persistence: remember user across sessions (stay logged in after closing browser)
         setPersistence(auth, browserLocalPersistence).catch(() => {});
-        const db = getFirestore(app);
-        enableIndexedDbPersistence(db).catch(function(err) {
-            if (err.code === 'failed-precondition') console.warn('Firestore: التخزين المؤقت غير مفعّل (عدة نوافذ مفتوحة).');
-            else if (err.code === 'unimplemented') console.warn('Firestore: المتصفح لا يدعم التخزين المؤقت المحلي.');
-        });
+        // Use Firestore with persistent cache (new API; avoids enableIndexedDbPersistence deprecation warning)
+        let db;
+        if (typeof initializeFirestore === 'function' && typeof persistentLocalCache === 'function') {
+            try {
+                db = initializeFirestore(app, { localCache: persistentLocalCache() });
+            } catch (e) {
+                db = getFirestore(app);
+                enableIndexedDbPersistence(db).catch(function(err) {
+                    if (err.code === 'failed-precondition') console.warn('Firestore: التخزين المؤقت غير مفعّل (عدة نوافذ مفتوحة).');
+                    else if (err.code === 'unimplemented') console.warn('Firestore: المتصفح لا يدعم التخزين المؤقت المحلي.');
+                });
+            }
+        } else {
+            db = getFirestore(app);
+            enableIndexedDbPersistence(db).catch(function(err) {
+                if (err.code === 'failed-precondition') console.warn('Firestore: التخزين المؤقت غير مفعّل (عدة نوافذ مفتوحة).');
+                else if (err.code === 'unimplemented') console.warn('Firestore: المتصفح لا يدعم التخزين المؤقت المحلي.');
+            });
+        }
 
         // Make these available globally
         window.firebaseAuth = auth;
@@ -2698,6 +2723,10 @@
             inventoryVerificationMenuItems.forEach(el => {
                 el.style.display = hasFullPermissions ? '' : 'none';
             });
+            const reportsMenuItems = document.querySelectorAll('.menu-item[onclick*="reports"]');
+            reportsMenuItems.forEach(el => {
+                el.style.display = hasFullPermissions ? '' : 'none';
+            });
             
             // Note: We don't call display functions here to avoid infinite loops
             // Display functions are called separately when needed (e.g., in loadMaterials, loadWarehouses, etc.)
@@ -2763,7 +2792,7 @@
                 }
             } else if (sectionId === 'reports') {
                 if (!hasFullPermissions) {
-                    checkReportsPassword();
+                    showAlert('صلاحية المدير أو الصلاحية الكاملة مطلوبة للوصول إلى قسم التقارير.', 'error');
                     return;
                 }
             } else if (sectionId === 'inventory') {
@@ -8358,6 +8387,10 @@
                     window.populateWarehouseReportMaterialOptions();
                     window.updateWarehouseReportMaterialDisplay();
                 }
+                // Ensure Material Movement period UI is in correct state
+                if (typeof window.toggleMaterialMovementDateInputs === 'function') {
+                    window.toggleMaterialMovementDateInputs();
+                }
             } catch (error) {
                 console.error('Error loading reports section:', error);
             }
@@ -8488,10 +8521,6 @@
                     const whId = data.warehouseId;
                     if (!whId) return;
                     
-                    // Filter by permissions (warehouse and supplier access)
-                    if (window.hasWarehouseAccess && !window.hasWarehouseAccess(whId)) return;
-                    if (window.hasSupplierAccess && data.supplierId && !window.hasSupplierAccess(data.supplierId)) return;
-                    
                     if (!warehousesData[whId]) {
                         warehousesData[whId] = {};
                     }
@@ -8523,10 +8552,6 @@
                     const whId = data.warehouseId;
                     if (!whId) return;
                     
-                    // Filter by permissions (warehouse and work site access)
-                    if (window.hasWarehouseAccess && !window.hasWarehouseAccess(whId)) return;
-                    if (window.hasWorkSiteAccess && data.workSiteId && !window.hasWorkSiteAccess(data.workSiteId)) return;
-                    
                     if (!warehousesData[whId]) {
                         warehousesData[whId] = {};
                     }
@@ -8557,10 +8582,6 @@
                     const data = doc.data();
                     const whId = data.warehouseId;
                     if (!whId) return;
-                    
-                    // Filter by permissions (warehouse and work site access)
-                    if (window.hasWarehouseAccess && !window.hasWarehouseAccess(whId)) return;
-                    if (window.hasWorkSiteAccess && data.workSiteId && !window.hasWorkSiteAccess(data.workSiteId)) return;
                     
                     if (!warehousesData[whId]) {
                         warehousesData[whId] = {};
@@ -8995,13 +9016,26 @@
             }
         };
 
+        // Toggle Material Movement date inputs based on period selection
+        window.toggleMaterialMovementDateInputs = function() {
+            try {
+                var periodRange = document.getElementById('materialMovementPeriodRange');
+                var container = document.getElementById('materialMovementDateInputsContainer');
+                if (periodRange && container) {
+                    container.style.display = periodRange.checked ? 'block' : 'none';
+                }
+            } catch (e) { console.error('toggleMaterialMovementDateInputs:', e); }
+        };
+
         // Material Movement Report
         window.loadMaterialMovementReport = async function() {
             try {
-                const materialId = document.getElementById('materialMovementSelect').value;
-                const warehouseId = document.getElementById('warehouseMovementSelect').value;
-                const fromDate = document.getElementById('materialMovementFromDate').value;
-                const toDate = document.getElementById('materialMovementToDate').value;
+                var materialId = (document.getElementById('materialMovementSelect') || {}).value || '';
+                var warehouseId = (document.getElementById('warehouseMovementSelect') || {}).value || '';
+                var periodRange = document.getElementById('materialMovementPeriodRange');
+                var useRange = periodRange ? periodRange.checked : false;
+                var fromDate = useRange ? ((document.getElementById('materialMovementFromDate') || {}).value || '') : '';
+                var toDate = useRange ? ((document.getElementById('materialMovementToDate') || {}).value || '') : '';
                 
                 if (!materialId || !warehouseId) {
                     showAlert('الرجاء اختيار المادة والمستودع', 'error');
@@ -9033,12 +9067,6 @@
                     return;
                 }
                 
-                // Check warehouse access permission
-                if (window.hasWarehouseAccess && !window.hasWarehouseAccess(warehouseId)) {
-                    showAlert('ليس لديك صلاحية للوصول إلى هذا المستودع', 'error');
-                    return;
-                }
-                
                 // Get all transactions for this material and warehouse
                 const transactionsRef = collection(db, 'transactions');
                 const allTransactions = [];
@@ -9048,9 +9076,6 @@
                 const receiveSnapshot = await getDocs(receiveQuery);
                 receiveSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    // Filter by supplier access permission
-                    if (window.hasSupplierAccess && data.supplierId && !window.hasSupplierAccess(data.supplierId)) return;
-                    
                     const item = data.items?.find(i => i.materialId === materialId);
                     if (item) {
                         allTransactions.push({
@@ -9073,9 +9098,6 @@
                 const deliverSnapshot = await getDocs(deliverQuery);
                 deliverSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    // Filter by work site access permission
-                    if (window.hasWorkSiteAccess && data.workSiteId && !window.hasWorkSiteAccess(data.workSiteId)) return;
-                    
                     const item = data.items?.find(i => i.materialId === materialId);
                     if (item) {
                         allTransactions.push({
@@ -9098,9 +9120,6 @@
                 const returnSnapshot = await getDocs(returnQuery);
                 returnSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    // Filter by work site access permission
-                    if (window.hasWorkSiteAccess && data.workSiteId && !window.hasWorkSiteAccess(data.workSiteId)) return;
-                    
                     const item = data.items?.find(i => i.materialId === materialId);
                     if (item) {
                         allTransactions.push({
@@ -10634,7 +10653,9 @@
                 }
                 
                 if (!userDoc) {
-                    console.warn('loadCurrentUserPermissions: المستخدم غير موجود في مجموعة users في Firestore (UID أو البريد). أضفه من قسم إدارة المستخدمين إن لزم.');
+                    if (currentUser.email !== ADMIN_EMAIL) {
+                        console.warn('loadCurrentUserPermissions: المستخدم غير موجود في مجموعة users في Firestore (UID أو البريد). أضفه من قسم إدارة المستخدمين إن لزم.');
+                    }
                 }
                 
                 if (userDoc && userData) {
