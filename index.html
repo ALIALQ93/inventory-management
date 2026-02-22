@@ -9076,8 +9076,10 @@
                 const receiveSnapshot = await getDocs(receiveQuery);
                 receiveSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const item = data.items?.find(i => i.materialId === materialId);
-                    if (item) {
+                    const matchingItems = (data.items || []).filter(i => i.materialId === materialId);
+                    const totalQty = matchingItems.reduce((sum, i) => sum + (parseFloat(i.quantity) || 0), 0);
+                    if (totalQty > 0) {
+                        const first = matchingItems[0];
                         allTransactions.push({
                             id: doc.id,
                             type: 'receive',
@@ -9085,10 +9087,10 @@
                             number: data.number,
                             supplierId: data.supplierId,
                             receiptNumber: data.supplierInvoice || null,
-                            quantity: item.quantity,
-                            enteredQuantity: item.enteredQuantity,
-                            enteredUnit: item.enteredUnit,
-                            unit: item.unit
+                            quantity: totalQty,
+                            enteredQuantity: first.enteredQuantity,
+                            enteredUnit: first.enteredUnit,
+                            unit: first.unit || material.unit
                         });
                     }
                 });
@@ -9098,8 +9100,10 @@
                 const deliverSnapshot = await getDocs(deliverQuery);
                 deliverSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const item = data.items?.find(i => i.materialId === materialId);
-                    if (item) {
+                    const matchingItems = (data.items || []).filter(i => i.materialId === materialId);
+                    const totalQty = matchingItems.reduce((sum, i) => sum + (parseFloat(i.quantity) || 0), 0);
+                    if (totalQty > 0) {
+                        const first = matchingItems[0];
                         allTransactions.push({
                             id: doc.id,
                             type: 'deliver',
@@ -9107,10 +9111,10 @@
                             number: data.number,
                             workSiteId: data.workSiteId,
                             receiptNumber: data.invoice || null,
-                            quantity: item.quantity,
-                            enteredQuantity: item.enteredQuantity,
-                            enteredUnit: item.enteredUnit,
-                            unit: item.unit
+                            quantity: totalQty,
+                            enteredQuantity: first.enteredQuantity,
+                            enteredUnit: first.enteredUnit,
+                            unit: first.unit || material.unit
                         });
                     }
                 });
@@ -9120,8 +9124,10 @@
                 const returnSnapshot = await getDocs(returnQuery);
                 returnSnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const item = data.items?.find(i => i.materialId === materialId);
-                    if (item) {
+                    const matchingItems = (data.items || []).filter(i => i.materialId === materialId);
+                    const totalQty = matchingItems.reduce((sum, i) => sum + (parseFloat(i.quantity) || 0), 0);
+                    if (totalQty > 0) {
+                        const first = matchingItems[0];
                         allTransactions.push({
                             id: doc.id,
                             type: 'return',
@@ -9129,10 +9135,10 @@
                             number: data.number,
                             workSiteId: data.workSiteId,
                             receiptNumber: data.invoice || null,
-                            quantity: item.quantity,
-                            enteredQuantity: item.enteredQuantity,
-                            enteredUnit: item.enteredUnit,
-                            unit: item.unit
+                            quantity: totalQty,
+                            enteredQuantity: first.enteredQuantity,
+                            enteredUnit: first.enteredUnit,
+                            unit: first.unit || material.unit
                         });
                     }
                 });
