@@ -6199,7 +6199,9 @@
                 window.warehouseInventory[warehouseId] = {};
                 
                 if (type === 'deliver' && typeof window.getComputedWarehouseBalances === 'function') {
-                    const balances = await window.getComputedWarehouseBalances(warehouseId, null);
+                    // عند التعديل: استبعاد الفاتورة الحالية ليكون المتوفر = المستلم + المسترد - المسلم (بدون هذه الفاتورة)
+                    const excludeId = (type === 'deliver' && window.editingDeliverId) ? window.editingDeliverId : null;
+                    const balances = await window.getComputedWarehouseBalances(warehouseId, excludeId);
                     Object.keys(balances || {}).forEach(mid => {
                         const qty = balances[mid];
                         if (qty != null && qty > 0) {
@@ -6331,16 +6333,13 @@
                 }
             }
             
-            // Validate total quantities per material
+            // Validate total quantities per material: المستلم + المسترد - المسلم - المسلم في الفاتورة الحالية >= 0
             for (const materialId in materialQuantitiesMap) {
                 const totalQuantity = materialQuantitiesMap[materialId];
                 const material = window.materials.find(m => m.id === materialId);
                 
-                // Check available quantity in base unit (add old quantity if editing)
+                // المتوفر = المستلم + المسترد - المسلم (بدون الفاتورة الحالية عند التعديل، لأن loadWarehouseInventory يستدعي getComputedWarehouseBalances مع استبعادها)
                 let available = window.warehouseInventory[warehouseId]?.[materialId] || 0;
-                if (window.editingDeliverId && oldItemsMap[materialId]) {
-                    available += oldItemsMap[materialId]; // Add old quantity that will be returned
-                }
                 
                 if (totalQuantity > available) {
                     validationError = `الكمية المطلوبة (${totalQuantity.toFixed(3)}) أكبر من المتوفر (${available.toFixed(3)}) للمادة ${material ? material.name : materialId}`;
