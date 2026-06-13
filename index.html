@@ -1041,6 +1041,7 @@
                         <thead>
                             <tr>
                                 <th>رقم الإيصال</th>
+                                <th>رقم إيصال المزود</th>
                                 <th>التاريخ</th>
                                 <th>المزود</th>
                                 <th>المستودع</th>
@@ -1066,6 +1067,7 @@
                         <thead>
                             <tr>
                                 <th>رقم التسليم</th>
+                                <th>رقم إيصال المزود</th>
                                 <th>التاريخ</th>
                                 <th>المستودع</th>
                                 <th>موقع العمل</th>
@@ -4453,7 +4455,7 @@
                 tbody.innerHTML = '';
 
                 if (snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">لا توجد عمليات استلام</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">لا توجد عمليات استلام</td></tr>';
                     return;
                 }
 
@@ -4494,6 +4496,7 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${receive.number || '-'}</td>
+                        <td>${receive.supplierInvoice || '-'}</td>
                         <td>${dateStr}</td>
                         <td>${supplier ? supplier.name : '-'}</td>
                         <td>${warehouse ? warehouse.name : '-'}</td>
@@ -4507,7 +4510,7 @@
                 console.error('Error loading receives:', error);
                 const tbody = document.getElementById('receivesTableBody');
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">خطأ في تحميل عمليات الاستلام</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: red;">خطأ في تحميل عمليات الاستلام</td></tr>';
                 }
             }
             updateManagementButtonsVisibility();
@@ -5336,7 +5339,7 @@
                 tbody.innerHTML = '';
 
                 if (snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">لا توجد عمليات تسليم</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">لا توجد عمليات تسليم</td></tr>';
                     return;
                 }
 
@@ -5377,6 +5380,7 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${deliver.number || '-'}</td>
+                        <td>${deliver.invoice || '-'}</td>
                         <td>${dateStr}</td>
                         <td>${warehouse ? warehouse.name : '-'}</td>
                         <td>${workSite ? workSite.name : '-'}</td>
@@ -5390,7 +5394,7 @@
                 console.error('Error loading delivers:', error);
                 const tbody = document.getElementById('deliversTableBody');
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">خطأ في تحميل عمليات التسليم</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: red;">خطأ في تحميل عمليات التسليم</td></tr>';
                 }
             }
             updateManagementButtonsVisibility();
