@@ -39,7 +39,7 @@
             --spacing-section: 20px;
             --shadow-1: 0 4px 12px rgba(44, 62, 80, 0.05);
             --shadow-2: 0 12px 32px rgba(44, 62, 80, 0.12);
-            --sidebar-width: 240px;
+            --sidebar-width: 268px;
             --sidebar-collapsed-width: 64px;
             --header-height: 52px;
             --footer-height: 40px;
@@ -109,13 +109,38 @@
             color: rgba(255,255,255,0.8);
         }
 
+        .sidebar-nav { padding-bottom: 12px; }
+
+        .nav-group { margin-bottom: 6px; }
+
+        .nav-label {
+            padding: 10px 18px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: rgba(255,255,255,0.45);
+        }
+
         .menu-item {
-            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
             cursor: pointer;
             transition: background 0.2s, border-color 0.2s;
             font-size: 13px;
             font-weight: 600;
+            line-height: 1.35;
         }
+
+        .menu-item i {
+            font-style: normal;
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .menu-label { min-width: 0; }
 
         [dir="rtl"] .menu-item { border-right: 3px solid transparent; }
         [dir="ltr"] .menu-item { border-left: 3px solid transparent; }
@@ -140,8 +165,8 @@
             font-weight: 700;
         }
 
-        [dir="rtl"] .menu-item i { margin-left: 10px; width: 20px; }
-        [dir="ltr"] .menu-item i { margin-right: 10px; width: 20px; }
+        [dir="rtl"] .menu-item i,
+        [dir="ltr"] .menu-item i { margin: 0; }
 
         .sidebar .btn-secondary {
             color: var(--on-primary);
@@ -192,6 +217,50 @@
         }
         
         .footer a:hover { color: var(--accent-blue-dim); }
+
+        .app-version {
+            display: inline-block;
+            color: var(--accent-blue);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .sidebar-header .app-version {
+            margin-top: 6px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .update-dialog {
+            position: fixed;
+            inset: 0;
+            z-index: 11000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(22, 40, 57, 0.72);
+        }
+
+        .update-dialog[hidden] { display: none; }
+
+        .update-dialog-card {
+            width: min(440px, 100%);
+            background: var(--surface-white);
+            color: var(--on-surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-2);
+            padding: 24px;
+        }
+
+        .update-dialog-card h2 { margin-bottom: 8px; }
+
+        .update-dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 18px;
+        }
 
         [dir="rtl"] .main-content { margin-right: var(--sidebar-width); }
         [dir="ltr"] .main-content { margin-left: var(--sidebar-width); }
@@ -291,6 +360,13 @@
         .section-toolbar-actions .search-box input {
             max-width: none;
             width: 100%;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .section-toolbar-actions select {
+            width: auto;
+            min-width: 160px;
             padding: 8px 12px;
             font-size: 14px;
         }
@@ -776,14 +852,206 @@
             color: var(--text-muted);
         }
 
-        .login-container {
-            max-width: 420px;
-            margin: 100px auto;
-            background: var(--surface-white);
-            padding: 40px;
-            border-radius: var(--radius-lg);
+        button.stat-card,
+        button.quick-link {
+            font-family: inherit;
+            color: inherit;
+            text-align: start;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button.stat-card:hover,
+        button.quick-link:hover {
+            border-color: var(--primary-slate);
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .quick-link {
+            background: var(--surface-container-low);
             border: 1px solid var(--border-subtle);
-            box-shadow: var(--shadow-2);
+            border-radius: var(--radius-lg);
+            padding: 12px 14px;
+        }
+
+        .quick-link strong {
+            display: block;
+            color: var(--primary-container);
+            font-size: 14px;
+        }
+
+        .quick-link small {
+            display: block;
+            margin-top: 2px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .empty-note {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 18px;
+        }
+
+        .section-toolbar .section-subtitle {
+            margin: 0;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .section-filters .form-group {
+            margin: 0;
+            flex: 1;
+            min-width: min(100%, 220px);
+        }
+
+        .login-screen {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(280px, 420px) 1fr;
+            background: var(--surface);
+        }
+
+        .login-aside {
+            background: var(--primary-container);
+            color: var(--on-primary);
+            padding: 48px 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 32px;
+        }
+
+        .login-mark {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+            font-family: var(--font-headline);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            margin-bottom: 20px;
+        }
+
+        .login-aside h1 {
+            color: var(--on-primary);
+            font-size: 1.85rem;
+            line-height: 1.25;
+            margin-bottom: 10px;
+        }
+
+        .login-kicker {
+            color: var(--accent-blue);
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+
+        .login-lead {
+            color: rgba(255,255,255,0.78);
+            font-size: 15px;
+            max-width: 28ch;
+        }
+
+        .login-points {
+            list-style: none;
+            display: grid;
+            gap: 10px;
+            margin-top: 28px;
+        }
+
+        .login-points li {
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .login-aside-foot {
+            color: rgba(255,255,255,0.55);
+            font-size: 12px;
+        }
+
+        .login-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 24px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--surface-white);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-1);
+            padding: 32px 28px;
+        }
+
+        .login-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        .login-card .section-subtitle {
+            margin-bottom: 20px;
+        }
+
+        .login-card .form-group { margin-bottom: 16px; }
+
+        .login-card label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .password-field { position: relative; }
+
+        .password-field input { padding-inline-end: 84px; }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            inset-inline-end: 8px;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: var(--primary-slate);
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 6px 8px;
+        }
+
+        .login-submit {
+            width: 100%;
+            margin: 8px 0 0;
+            padding: 12px 22px;
+            background: var(--primary-container);
+            color: var(--on-primary);
+        }
+
+        .login-submit:hover { background: var(--primary); }
+
+        .login-submit:disabled {
+            opacity: 0.7;
+            cursor: wait;
         }
 
         .transaction-item {
@@ -835,10 +1103,40 @@
 
         .reports-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
             margin-bottom: var(--spacing-gutter);
         }
+
+        button.report-card {
+            width: 100%;
+            font-family: inherit;
+            color: inherit;
+            text-align: start;
+            cursor: pointer;
+        }
+
+        button.report-card:hover { border-color: var(--primary-slate); }
+
+        .report-card h3 { font-size: 1.35rem; }
+
+        .report-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 8px 0 16px;
+        }
+
+        .report-summary .stat-card { box-shadow: none; }
+
+        .report-sheet {
+            overflow-x: auto;
+            margin-bottom: 28px;
+        }
+
+        .report-sheet table { width: 100%; }
+
+        tr.report-mismatch { background: #fff7ed; }
 
         .report-card {
             background: var(--surface-white);
@@ -856,7 +1154,8 @@
         [dir="rtl"] .report-card:nth-child(3) { border-right-color: var(--accent-blue-dim); }
         [dir="ltr"] .report-card:nth-child(1) { border-left-color: var(--accent-blue); }
         [dir="ltr"] .report-card:nth-child(2) { border-left-color: var(--emerald); }
-        [dir="ltr"] .report-card:nth-child(3) { border-left-color: var(--accent-blue-dim); }
+        [dir="rtl"] .report-card:nth-child(4) { border-right-color: var(--warning); }
+        [dir="ltr"] .report-card:nth-child(4) { border-left-color: var(--warning); }
 
         .report-card h3 {
             font-family: var(--font-headline);
@@ -967,10 +1266,143 @@
         [dir="ltr"] .stat-card:nth-child(3) { border-left-color: var(--accent-blue-dim); }
         [dir="ltr"] .stat-card:nth-child(4) { border-left-color: var(--primary-slate); }
 
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 10px;
+        }
+
+        .role-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            background: var(--surface-white);
+        }
+
+        .role-card input { margin-top: 3px; width: 16px; height: 16px; flex-shrink: 0; }
+
+        .role-card strong { display: block; font-size: 14px; color: var(--primary-container); }
+
+        .role-card small {
+            display: block;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.4;
+            margin-top: 2px;
+        }
+
+        .role-card:has(input:checked) {
+            border-color: var(--primary-container);
+            background: #f4f7fb;
+            box-shadow: inset 0 0 0 1px var(--primary-container);
+        }
+
+        .perm-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 4px 0 14px;
+        }
+
+        .perm-tab {
+            border: 1px solid var(--border-subtle);
+            background: var(--surface-white);
+            color: var(--primary-container);
+            border-radius: 999px;
+            padding: 7px 14px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .perm-tab.active {
+            background: var(--primary-container);
+            color: var(--on-primary);
+            border-color: var(--primary-container);
+        }
+
+        .perm-panel { display: none; }
+        .perm-panel.active { display: block; }
+
+        .perm-matrix {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        .perm-matrix th,
+        .perm-matrix td {
+            border: 1px solid var(--border-subtle);
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .perm-matrix th {
+            background: var(--surface-container-low);
+            font-size: 13px;
+        }
+
+        .perm-matrix td:first-child,
+        .perm-matrix th:first-child { text-align: start; font-weight: 600; }
+
+        .perm-matrix input { width: 18px; height: 18px; }
+
+        .perm-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            background: #e8eef4;
+            color: #2c3e50;
+            margin: 2px 2px 0 0;
+        }
+
+        .perm-badge.role-manager { background: #dbeafe; color: #1e3a8a; }
+        .perm-badge.role-supervisor { background: #d1fae5; color: #065f46; }
+        .perm-badge.role-clerk { background: #fef3c7; color: #92400e; }
+        .perm-badge.role-viewer { background: #f1f5f9; color: #475569; }
+        .perm-badge.role-custom { background: #ede9fe; color: #5b21b6; }
+        .perm-badge.scope-full { background: #d1fae5; color: #065f46; }
+
+        .check-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 8px 12px;
+        }
+
+        .check-grid label,
+        .scope-list label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .scope-list {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: var(--surface-white);
+        }
+
         /* Collapsed sidebar */
         body.sidebar-collapsed .sidebar-header h2,
         body.sidebar-collapsed .sidebar-header .user-info,
-        body.sidebar-collapsed .sidebar-header button {
+        body.sidebar-collapsed .sidebar-header button,
+        body.sidebar-collapsed .sidebar-header .app-version,
+        body.sidebar-collapsed .nav-label,
+        body.sidebar-collapsed .menu-label {
             display: none;
         }
 
@@ -980,9 +1412,9 @@
         }
 
         body.sidebar-collapsed .menu-item {
-            font-size: 0;
+            justify-content: center;
             padding: 11px 8px;
-            text-align: center;
+            gap: 0;
         }
 
         body.sidebar-collapsed [dir="rtl"] .menu-item i,
@@ -1011,6 +1443,7 @@
 
         @media (max-width: 900px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .quick-links { grid-template-columns: repeat(2, 1fr); }
             .reports-grid { grid-template-columns: 1fr; }
         }
 
@@ -1116,14 +1549,26 @@
                 grid-template-columns: 1fr 1fr;
             }
 
-            .login-container {
-                margin: 40px var(--spacing-gutter);
-                padding: var(--spacing-section) var(--spacing-gutter);
+            .quick-links {
+                grid-template-columns: 1fr 1fr;
             }
+
+            .login-screen { grid-template-columns: 1fr; }
+
+            .login-aside { padding: 28px 20px 8px; }
+
+            .login-points { display: none; }
+
+            .login-aside-foot { display: none; }
+
+            .login-main { padding: 16px 16px 32px; align-items: flex-start; }
+
+            .login-card { padding: 24px 18px; }
         }
 
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
+            .quick-links { grid-template-columns: 1fr; }
         }
 
         /* Tablet: compact sidebar */
@@ -1132,15 +1577,15 @@
 
             .sidebar-header h2,
             .sidebar-header .user-info,
-            .menu-item span,
+            .menu-label,
+            .nav-label,
             .sidebar-header button {
                 display: none;
             }
 
             .menu-item {
-                text-align: center;
+                justify-content: center;
                 padding: 14px 8px;
-                font-size: 0;
             }
 
             [dir="rtl"] .menu-item i,
@@ -1161,18 +1606,42 @@
 <body>
     <!-- Login Section -->
     <div id="loginSection" style="display: block;">
-        <div class="login-container" autocomplete="off">
-            <h2 style="text-align: center; margin-bottom: 30px; color: var(--primary-container);">تسجيل الدخول</h2>
-            <div class="alert" id="loginAlert"></div>
-            <div class="form-group">
-                <label>البريد الإلكتروني:</label>
-                <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني" autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label>كلمة المرور:</label>
-                <input type="password" id="password" placeholder="أدخل كلمة المرور" autocomplete="new-password">
-            </div>
-            <button class="btn btn-primary" onclick="login()" style="width: 100%;">تسجيل الدخول</button>
+        <div class="login-screen">
+            <aside class="login-aside">
+                <div>
+                    <div class="login-mark">RM</div>
+                    <p class="login-kicker">RoseMary للحلول البرمجية</p>
+                    <h1>نظام إدارة المخزون والمستودعات</h1>
+                    <p class="login-lead">متابعة المواد، وحركات الاستلام والتسليم، ومواقع العمل من مكان واحد.</p>
+                    <ul class="login-points">
+                        <li>المستودعات ومواقع العمل</li>
+                        <li>الاستلام والتسليم والاسترداد</li>
+                        <li>التقارير حسب صلاحية الحساب</li>
+                    </ul>
+                </div>
+                <p class="login-aside-foot">© 2024 RoseMary Software Solutions</p>
+                <p class="app-version" data-app-version></p>
+            </aside>
+            <main class="login-main">
+                <form class="login-card" autocomplete="off" onsubmit="event.preventDefault(); login();">
+                    <h2>تسجيل الدخول</h2>
+                    <p class="section-subtitle">أدخل البريد الإلكتروني وكلمة المرور الخاصة بحسابك.</p>
+                    <p class="app-version" data-app-version></p>
+                    <div class="alert" id="loginAlert"></div>
+                    <div class="form-group">
+                        <label for="email">البريد الإلكتروني</label>
+                        <input type="email" id="email" placeholder="name@example.com" autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">كلمة المرور</label>
+                        <div class="password-field">
+                            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+                            <button type="button" class="password-toggle" id="passwordToggle" onclick="toggleLoginPassword()">إظهار</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn login-submit" id="loginSubmitBtn">دخول</button>
+                </form>
+            </main>
         </div>
     </div>
 
@@ -1192,56 +1661,74 @@
             <div class="sidebar">
                 <div class="sidebar-header">
                     <h2>نظام المخزون</h2>
+                    <p class="app-version" data-app-version></p>
                     <div class="user-info">
                         <div id="sidebarUserEmail"></div>
                         <button class="btn btn-secondary btn-small" onclick="logout()" style="margin-top: 10px; width: 100%;">تسجيل الخروج</button>
                     </div>
                 </div>
-                <div class="menu-item active" onclick="showSection('dashboard')">
-                    <i>📊</i> لوحة التحكم
-                </div>
-                <div class="menu-item" onclick="showSection('materials')">
-                    <i>📦</i> إدارة المواد
-                </div>
-                <div class="menu-item" onclick="showSection('warehouses')">
-                    <i>🏭</i> إدارة المستودعات
-                </div>
-                <div class="menu-item" onclick="showSection('workSites')">
-                    <i>🏗️</i> إدارة مواقع العمل
-                </div>
-                <div class="menu-item" onclick="showSection('workSiteGroups')">
-                    <i>📁</i> مجموعات مواقع العمل
-                </div>
-                <div class="menu-item" onclick="showSection('suppliers')">
-                    <i>🚚</i> إدارة المزودين
-                </div>
-                <div class="menu-item" onclick="showSection('units')">
-                    <i>📏</i> إدارة الوحدات
-                </div>
-                <div class="menu-item" onclick="showSection('receive')">
-                    <i>⬇️</i> عمليات الاستلام
-                </div>
-                <div class="menu-item" onclick="showSection('deliver')">
-                    <i>➡️</i> عمليات التسليم
-                </div>
-                <div class="menu-item" onclick="showSection('return')">
-                    <i>⬆️</i> استرداد من موقع عمل
-                </div>
-                <div class="menu-item" onclick="showSection('inventory')">
-                    <i>📋</i> تتبع المخزون
-                </div>
-                <div class="menu-item" onclick="showSection('inventoryVerification')">
-                    <i>🔧</i> التحقق من المخزون وصيانته
-                </div>
-                <div class="menu-item" onclick="showSection('reports')">
-                    <i>📈</i> التقارير
-                </div>
-                <div class="menu-item" onclick="showSection('users')">
-                    <i>👥</i> إدارة المستخدمين
-                </div>
-                <div class="menu-item" onclick="showSection('activityLog')">
-                    <i>📋</i> سجل العمليات
-                </div>
+                <nav class="sidebar-nav">
+                    <div class="nav-group">
+                        <div class="nav-label" data-i18n="navHome">الرئيسية</div>
+                        <div class="menu-item active" data-section="dashboard" onclick="showSection('dashboard', event)">
+                            <i>📊</i><span class="menu-label">لوحة التحكم</span>
+                        </div>
+                    </div>
+                    <div class="nav-group">
+                        <div class="nav-label" data-i18n="navMaster">البيانات الأساسية</div>
+                        <div class="menu-item" data-section="materials" onclick="showSection('materials', event)">
+                            <i>📦</i><span class="menu-label">إدارة المواد</span>
+                        </div>
+                        <div class="menu-item" data-section="warehouses" onclick="showSection('warehouses', event)">
+                            <i>🏭</i><span class="menu-label">إدارة المستودعات</span>
+                        </div>
+                        <div class="menu-item" data-section="workSites" onclick="showSection('workSites', event)">
+                            <i>🏗️</i><span class="menu-label">إدارة مواقع العمل</span>
+                        </div>
+                        <div class="menu-item" data-section="workSiteGroups" onclick="showSection('workSiteGroups', event)">
+                            <i>📁</i><span class="menu-label">مجموعات مواقع العمل</span>
+                        </div>
+                        <div class="menu-item" data-section="suppliers" onclick="showSection('suppliers', event)">
+                            <i>🚚</i><span class="menu-label">إدارة المزودين</span>
+                        </div>
+                        <div class="menu-item" data-section="units" onclick="showSection('units', event)">
+                            <i>📏</i><span class="menu-label">إدارة الوحدات</span>
+                        </div>
+                    </div>
+                    <div class="nav-group">
+                        <div class="nav-label" data-i18n="navOps">العمليات</div>
+                        <div class="menu-item" data-section="receive" onclick="showSection('receive', event)">
+                            <i>⬇️</i><span class="menu-label">عمليات الاستلام</span>
+                        </div>
+                        <div class="menu-item" data-section="deliver" onclick="showSection('deliver', event)">
+                            <i>➡️</i><span class="menu-label">عمليات التسليم</span>
+                        </div>
+                        <div class="menu-item" data-section="return" onclick="showSection('return', event)">
+                            <i>⬆️</i><span class="menu-label">استرداد من موقع عمل</span>
+                        </div>
+                    </div>
+                    <div class="nav-group">
+                        <div class="nav-label" data-i18n="navFollow">المتابعة</div>
+                        <div class="menu-item" data-section="inventory" onclick="showSection('inventory', event)">
+                            <i>📋</i><span class="menu-label">تتبع المخزون</span>
+                        </div>
+                        <div class="menu-item" data-section="inventoryVerification" onclick="showSection('inventoryVerification', event)">
+                            <i>🔧</i><span class="menu-label">التحقق من المخزون وصيانته</span>
+                        </div>
+                        <div class="menu-item" data-section="reports" onclick="showSection('reports', event)">
+                            <i>📈</i><span class="menu-label">التقارير</span>
+                        </div>
+                    </div>
+                    <div class="nav-group" data-nav-group="admin">
+                        <div class="nav-label" data-i18n="navAdmin">الإدارة</div>
+                        <div class="menu-item" data-section="users" onclick="showSection('users', event)">
+                            <i>👥</i><span class="menu-label">إدارة المستخدمين</span>
+                        </div>
+                        <div class="menu-item" data-section="activityLog" onclick="showSection('activityLog', event)">
+                            <i>📝</i><span class="menu-label">سجل العمليات</span>
+                        </div>
+                    </div>
+                </nav>
             </div>
 
             <!-- Main Content -->
@@ -1263,31 +1750,50 @@
                 <!-- Dashboard Section -->
                 <div id="dashboard" class="section active">
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <button type="button" class="stat-card" onclick="showSection('materials')">
                             <h3 id="statTotalMaterials">0</h3>
-                            <p>إجمالي المواد</p>
-                        </div>
-                        <div class="stat-card">
+                            <p>المواد</p>
+                        </button>
+                        <button type="button" class="stat-card" onclick="showSection('warehouses')">
                             <h3 id="statTotalWarehouses">0</h3>
                             <p>المستودعات</p>
-                        </div>
-                        <div class="stat-card">
+                        </button>
+                        <button type="button" class="stat-card" onclick="showSection('workSites')">
                             <h3 id="statTotalWorkSites">0</h3>
                             <p>مواقع العمل</p>
-                        </div>
-                        <div class="stat-card">
+                        </button>
+                        <button type="button" class="stat-card" onclick="showSection('receive')">
                             <h3 id="statTotalTransactions">0</h3>
-                            <p>المعاملات اليوم</p>
-                        </div>
+                            <p>معاملات اليوم</p>
+                        </button>
                     </div>
-                    <h2 class="section-block-title">آخر المعاملات</h2>
-                    <div id="recentTransactions"></div>
+                    <div class="quick-links">
+                        <button type="button" class="quick-link" onclick="showSection('receive')"><strong>استلام</strong><small>وارد من المزود إلى المستودع</small></button>
+                        <button type="button" class="quick-link" onclick="showSection('deliver')"><strong>تسليم</strong><small>صادر من المستودع إلى موقع العمل</small></button>
+                        <button type="button" class="quick-link" onclick="showSection('return')"><strong>استرداد</strong><small>راجع من موقع العمل إلى المستودع</small></button>
+                        <button type="button" class="quick-link" onclick="showSection('inventory')"><strong>المخزون</strong><small>الأرصدة الحالية حسب الموقع</small></button>
+                    </div>
+                    <h2 class="section-block-title">معاملات اليوم</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>النوع</th>
+                                <th>الرقم</th>
+                                <th>الموقع</th>
+                                <th>عدد المواد</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTransactionsBody">
+                            <tr><td colspan="5" class="empty-note">لا توجد معاملات اليوم</td></tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Materials Section -->
                 <div id="materials" class="section">
                     <div class="section-toolbar">
-                        <h2>إدارة المواد</h2>
+                        <p class="section-subtitle">بطاقات المواد، وحداتها، وحد إعادة الطلب.</p>
                         <div class="section-toolbar-actions">
                             <div class="search-box">
                                 <input type="text" id="searchMaterials" placeholder="بحث عن مادة..." onkeyup="filterMaterials()">
@@ -1316,7 +1822,7 @@
                 <!-- Warehouses Section -->
                 <div id="warehouses" class="section">
                     <div class="section-toolbar">
-                        <h2>إدارة المستودعات</h2>
+                        <p class="section-subtitle">أماكن التخزين والمسؤول عن كل مستودع.</p>
                         <button class="btn btn-primary" onclick="showWarehouseModal()">إضافة مستودع جديد</button>
                     </div>
                     <table>
@@ -1336,7 +1842,7 @@
                 <!-- Work Sites Section -->
                 <div id="workSites" class="section">
                     <div class="section-toolbar">
-                        <h2>إدارة مواقع العمل</h2>
+                        <p class="section-subtitle">المشاريع التي تُسلَّم إليها المواد.</p>
                         <button class="btn btn-primary" onclick="showWorkSiteModal()">إضافة موقع عمل جديد</button>
                     </div>
                     <table>
@@ -1357,10 +1863,9 @@
                 <!-- Work Site Groups Section -->
                 <div id="workSiteGroups" class="section">
                     <div class="section-toolbar">
-                        <h2>مجموعات مواقع العمل</h2>
+                        <p class="section-subtitle">عند منح المستخدم صلاحية على مجموعة، يصبح له الوصول إلى كل مواقع العمل المدرجة ضمنها.</p>
                         <button class="btn btn-primary" onclick="showWorkSiteGroupModal()">إضافة مجموعة جديدة</button>
                     </div>
-                    <p class="section-subtitle">عند منح المستخدم صلاحية على مجموعة، يصبح له الوصول إلى كل مواقع العمل المدرجة ضمنها.</p>
                     <table>
                         <thead>
                             <tr>
@@ -1376,7 +1881,7 @@
                 <!-- Suppliers Section -->
                 <div id="suppliers" class="section">
                     <div class="section-toolbar">
-                        <h2>إدارة المزودين</h2>
+                        <p class="section-subtitle">جهات التوريد المستخدمة في عمليات الاستلام.</p>
                         <button class="btn btn-primary" onclick="showSupplierModal()">إضافة مزود جديد</button>
                     </div>
                     <table>
@@ -1396,7 +1901,7 @@
                 <!-- Units Section -->
                 <div id="units" class="section">
                     <div class="section-toolbar">
-                        <h2>إدارة الوحدات</h2>
+                        <p class="section-subtitle">وحدات القياس المرتبطة بالمواد.</p>
                         <button class="btn btn-primary" onclick="showUnitModal()">إضافة وحدة جديدة</button>
                     </div>
                     <table>
@@ -1416,7 +1921,7 @@
                 <!-- Receive Section -->
                 <div id="receive" class="section">
                     <div class="section-toolbar">
-                        <h2>عمليات الاستلام</h2>
+                        <p class="section-subtitle">المواد الواردة من المزود إلى المستودع.</p>
                         <div class="section-toolbar-actions">
                             <div class="search-box">
                                 <input type="text" id="searchReceives" placeholder="بحث في عمليات الاستلام..." onkeyup="filterReceives()">
@@ -1444,7 +1949,7 @@
                 <!-- Deliver Section -->
                 <div id="deliver" class="section">
                     <div class="section-toolbar">
-                        <h2>عمليات التسليم</h2>
+                        <p class="section-subtitle">المواد الخارجة من المستودع إلى موقع العمل.</p>
                         <div class="section-toolbar-actions">
                             <div class="search-box">
                                 <input type="text" id="searchDelivers" placeholder="بحث في عمليات التسليم..." onkeyup="filterDelivers()">
@@ -1472,7 +1977,7 @@
                 <!-- Return Section -->
                 <div id="return" class="section">
                     <div class="section-toolbar">
-                        <h2>عمليات الاسترداد</h2>
+                        <p class="section-subtitle">المواد الراجعة من موقع العمل إلى المستودع.</p>
                         <div class="section-toolbar-actions">
                             <div class="search-box">
                                 <input type="text" id="searchReturns" placeholder="بحث في عمليات الاسترداد..." onkeyup="filterReturns()">
@@ -1498,8 +2003,8 @@
 
                 <!-- Inventory Section -->
                 <div id="inventory" class="section">
-                    <h2>تتبع المخزون</h2>
-                    <div class="form-grid" style="margin-bottom: 20px;">
+                    <p class="section-subtitle">الأرصدة الحالية حسب المستودع والمادة.</p>
+                    <div class="section-filters">
                         <div class="form-group">
                             <label>المستودع:</label>
                             <select id="inventoryWarehouse" onchange="loadInventory()">
@@ -1536,9 +2041,14 @@
 
                 <!-- Inventory Verification & Maintenance Section -->
                 <div id="inventoryVerification" class="section">
-                    <h2>التحقق من صحة المخزون وصيانة الأخطاء</h2>
-                    <p style="color: #666; margin-bottom: 20px;">مقارنة الرصيد المحسوب من المعاملات (استلام - تسليم + استرداد قابل للاستخدام) مع الرصيد المسجل في المخزون، وعرض الفروقات مع إمكانية الإصلاح.</p>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div class="section-toolbar">
+                        <p class="section-subtitle">مقارنة الرصيد المحسوب من الحركات مع الرصيد المسجل، ثم إصلاح الفروقات.</p>
+                        <div class="section-toolbar-actions">
+                            <button type="button" class="btn btn-primary" id="inventoryVerifyScanBtn" onclick="runInventoryVerification()">فحص المخزون</button>
+                            <button type="button" class="btn btn-warning" id="inventoryVerifyRepairBtn" onclick="repairInventoryDiscrepancies()" style="display: none;">إصلاح الفروقات المحددة</button>
+                        </div>
+                    </div>
+                    <div class="section-filters">
                         <div class="form-group">
                             <label>نطاق الفحص:</label>
                             <select id="inventoryVerifyScope">
@@ -1566,11 +2076,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="margin-bottom: 15px;">
-                        <button type="button" class="btn btn-primary" id="inventoryVerifyScanBtn" onclick="runInventoryVerification()">فحص المخزون</button>
-                        <button type="button" class="btn btn-warning" id="inventoryVerifyRepairBtn" onclick="repairInventoryDiscrepancies()" style="display: none; margin-right: 10px;">إصلاح الفروقات المحددة</button>
-                    </div>
-                    <div id="inventoryVerifyStatus" style="margin-bottom: 15px; font-weight: bold;"></div>
+                    <div id="inventoryVerifyStatus" class="section-subtitle"></div>
                     <div id="inventoryVerifyResults" style="overflow-x: auto;">
                         <table id="inventoryVerifyTable" style="display: none; width: 100%; border-collapse: collapse;">
                             <thead>
@@ -1592,166 +2098,187 @@
                     </div>
                 </div>
 
-                <!-- Reports Section -->
+                <!-- Reports catalog -->
                 <div id="reports" class="section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                        <h2>التقارير</h2>
-                    </div>
-                    
+                    <p class="section-subtitle">كل تقرير يفتح في صفحة مستقلة. الصلاحية الكاملة تفتح التقارير، ويمكن منح «عرض التقارير» وحدها من إدارة المستخدمين.</p>
                     <div class="reports-grid">
-                        <!-- Warehouse Inventory Report -->
-                        <div class="report-card">
-                            <h3>📦 تقرير جرد المستودعات</h3>
-                            <p>عرض جرد جميع المواد في المستودعات مع الكميات المتوفرة</p>
-                            <div class="form-group">
-                                <label>اختر المستودع:</label>
-                                <select id="warehouseReportSelect">
-                                    <option value="">جميع المستودعات</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>المادة:</label>
-                                <div class="searchable-select" id="warehouseReportMaterialSelectDiv">
-                                    <div class="selected-value" onclick="toggleWarehouseReportMaterialOptions()">
-                                        <span id="warehouseReportMaterialDisplay">جميع المواد</span>
-                                    </div>
-                                    <div class="options-list" id="warehouseReportMaterialOptions">
-                                        <input type="text" id="warehouseReportMaterialSearch" placeholder="ابحث بالاسم أو الرمز..." onkeyup="filterWarehouseReportMaterialOptions()" onclick="event.stopPropagation()">
-                                        <div id="warehouseReportMaterialOptionsList"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn btn-primary btn-block" onclick="loadWarehouseInventoryReport()">
-                                عرض التقرير
-                            </button>
-                            <button class="btn btn-secondary btn-block" onclick="printWarehouseInventoryReport()">
-                                طباعة التقرير
-                            </button>
-                        </div>
-                        
-                        <!-- Work Site Delivered Materials Report -->
-                        <div class="report-card">
-                            <h3>🏗️ تقرير المواد المسلمة</h3>
-                            <p>عرض المواد المسلمة إلى مواقع العمل مع الكميات</p>
-                            <div class="form-group">
-                                <label>اختر موقع العمل:</label>
-                                <select id="workSiteReportSelect">
-                                    <option value="">جميع مواقع العمل</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-primary btn-block" onclick="loadWorkSiteDeliveredReport()">
-                                عرض التقرير
-                            </button>
-                            <button class="btn btn-secondary btn-block" onclick="printWorkSiteDeliveredReport()">
-                                طباعة التقرير
-                            </button>
-                        </div>
-                        
-                        <!-- Material Movement Report -->
-                        <div class="report-card">
-                            <h3>📊 تقرير حركة المادة</h3>
-                            <p>عرض حركة مادة محددة في مستودع خلال فترة زمنية</p>
-                            <div class="form-group">
-                                <label>المادة:</label>
-                                <div class="searchable-select" id="materialMovementSelectDiv">
-                                    <div class="selected-value empty" onclick="toggleMaterialMovementOptions()">
-                                        <span id="materialMovementDisplay">اختر المادة</span>
-                                    </div>
-                                    <div class="options-list" id="materialMovementOptions">
-                                        <input type="text" id="materialMovementSearch" placeholder="ابحث عن مادة..." onkeyup="filterMaterialMovementOptions()" onclick="event.stopPropagation()">
-                                        <div id="materialMovementOptionsList"></div>
-                                    </div>
-                                    <input type="hidden" id="materialMovementSelect" value="">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>المستودع:</label>
-                                <select id="warehouseMovementSelect">
-                                    <option value="">اختر المستودع</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>الفترة:</label>
-                                <div style="margin-bottom: 8px;">
-                                    <label style="font-weight: 400; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
-                                        <input type="radio" id="materialMovementPeriodAll" name="materialMovementPeriod" value="all" checked onchange="if(window.toggleMaterialMovementDateInputs)window.toggleMaterialMovementDateInputs()">
-                                        جميع الفترات
-                                    </label>
-                                    <label style="font-weight: 400; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                        <input type="radio" id="materialMovementPeriodRange" name="materialMovementPeriod" value="range" onchange="if(window.toggleMaterialMovementDateInputs)window.toggleMaterialMovementDateInputs()">
-                                        فترة محددة
-                                    </label>
-                                </div>
-                                <div id="materialMovementDateInputsContainer" style="display: none; margin-top: 8px;">
-                                    <label>من تاريخ:</label>
-                                    <input type="date" id="materialMovementFromDate" style="margin-bottom: 8px;">
-                                    <label>إلى تاريخ:</label>
-                                    <input type="date" id="materialMovementToDate">
-                                </div>
-                            </div>
-                            <button class="btn btn-primary btn-block" onclick="loadMaterialMovementReport()">
-                                عرض التقرير
-                            </button>
-                            <button class="btn btn-secondary btn-block" onclick="printMaterialMovementReport()">
-                                طباعة التقرير
-                            </button>
-                        </div>
+                        <button type="button" class="report-card" onclick="showSection('reportWarehouse')">
+                            <h3>تقرير جرد المستودعات</h3>
+                            <p>الكميات المتوفرة في مستودع واحد أو في كل المستودعات.</p>
+                            <span class="btn btn-primary">فتح التقرير</span>
+                        </button>
+                        <button type="button" class="report-card" onclick="showSection('reportWorkSite')">
+                            <h3>تقرير المواد المسلمة</h3>
+                            <p>المواد التي وصلت إلى موقع عمل والكميات المسلمة.</p>
+                            <span class="btn btn-primary">فتح التقرير</span>
+                        </button>
+                        <button type="button" class="report-card" onclick="showSection('reportMovement')">
+                            <h3>تقرير حركة المادة</h3>
+                            <p>حركة مادة داخل مستودع خلال كل الفترات أو فترة تحددها.</p>
+                            <span class="btn btn-primary">فتح التقرير</span>
+                        </button>
+                        <button type="button" class="report-card" onclick="showSection('reportUserWork')">
+                            <h3>تقرير عمل المستخدمين</h3>
+                            <p>العمليات التي سُجّلت فعلياً في يوم محدد، وليس حسب التاريخ المكتوب داخل العملية.</p>
+                            <span class="btn btn-primary">فتح التقرير</span>
+                        </button>
                     </div>
-                    
-                    <!-- Warehouse Inventory Report Results -->
-                    <div id="warehouseInventoryReport" style="display: none; margin-bottom: 30px;">
-                        <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div class="section-toolbar">
-                                <h3 style="color: #667eea;">📦 تقرير جرد المستودعات</h3>
-                                <button class="btn btn-info" onclick="printWarehouseInventoryReport()">
-                                    طباعة التقرير
-                                </button>
-                            </div>
-                            <div id="warehouseInventoryReportContent"></div>
-                        </div>
+                </div>
+
+                <div id="reportWarehouse" class="section">
+                    <div class="section-toolbar">
+                        <button type="button" class="btn btn-secondary" onclick="showSection('reports')">رجوع إلى التقارير</button>
+                        <button type="button" class="btn btn-info" onclick="printWarehouseInventoryReport()">طباعة</button>
                     </div>
-                    
-                    <!-- Work Site Delivered Report Results -->
-                    <div id="workSiteDeliveredReport" style="display: none; margin-bottom: 30px;">
-                        <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div class="section-toolbar">
-                                <h3 style="color: #f5576c;">🏗️ تقرير المواد المسلمة</h3>
-                                <button class="btn btn-info" onclick="printWorkSiteDeliveredReport()">
-                                    طباعة التقرير
-                                </button>
-                            </div>
-                            <div id="workSiteDeliveredReportContent"></div>
+                    <h2 class="section-block-title">تقرير جرد المستودعات</h2>
+                    <p class="section-subtitle">يُعرض الجرد عند فتح الصفحة، ويتغير عند اختيار المستودع أو المادة.</p>
+                    <div class="section-filters">
+                        <div class="form-group">
+                            <label>المستودع:</label>
+                            <select id="warehouseReportSelect" onchange="if (window.scheduleWarehouseInventoryReport) window.scheduleWarehouseInventoryReport()">
+                                <option value="">جميع المستودعات</option>
+                            </select>
                         </div>
+                        <div class="form-group">
+                            <label>المادة:</label>
+                            <div class="searchable-select" id="warehouseReportMaterialSelectDiv">
+                                <div class="selected-value" onclick="toggleWarehouseReportMaterialOptions()">
+                                    <span id="warehouseReportMaterialDisplay">جميع المواد</span>
+                                </div>
+                                <div class="options-list" id="warehouseReportMaterialOptions">
+                                    <input type="text" id="warehouseReportMaterialSearch" placeholder="ابحث بالاسم أو الرمز..." onkeyup="filterWarehouseReportMaterialOptions()" onclick="event.stopPropagation()">
+                                    <div id="warehouseReportMaterialOptionsList"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadWarehouseInventoryReport()">عرض التقرير</button>
                     </div>
-                    
-                    <!-- Material Movement Report Results -->
-                    <div id="materialMovementReport" style="display: none; margin-bottom: 30px;">
-                        <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div class="section-toolbar">
-                                <h3 style="color: #4facfe;">📊 تقرير حركة المادة</h3>
-                                <button class="btn btn-info" onclick="printMaterialMovementReport()">
-                                    طباعة التقرير
-                                </button>
-                            </div>
-                            <div id="materialMovementReportContent"></div>
+                    <div id="warehouseInventoryReport">
+                        <div id="warehouseInventoryReportContent"></div>
+                    </div>
+                </div>
+
+                <div id="reportWorkSite" class="section">
+                    <div class="section-toolbar">
+                        <button type="button" class="btn btn-secondary" onclick="showSection('reports')">رجوع إلى التقارير</button>
+                        <button type="button" class="btn btn-info" onclick="printWorkSiteDeliveredReport()">طباعة</button>
+                    </div>
+                    <h2 class="section-block-title">تقرير المواد المسلمة</h2>
+                    <p class="section-subtitle">المواد المسلمة إلى مواقع العمل والكميات.</p>
+                    <div class="section-filters">
+                        <div class="form-group">
+                            <label>موقع العمل:</label>
+                            <select id="workSiteReportSelect">
+                                <option value="">جميع مواقع العمل</option>
+                            </select>
                         </div>
+                        <button class="btn btn-primary" onclick="loadWorkSiteDeliveredReport()">عرض التقرير</button>
+                    </div>
+                    <div id="workSiteDeliveredReport">
+                        <div id="workSiteDeliveredReportContent"></div>
+                    </div>
+                </div>
+
+                <div id="reportMovement" class="section">
+                    <div class="section-toolbar">
+                        <button type="button" class="btn btn-secondary" onclick="showSection('reports')">رجوع إلى التقارير</button>
+                        <button type="button" class="btn btn-info" onclick="printMaterialMovementReport()">طباعة</button>
+                    </div>
+                    <h2 class="section-block-title">تقرير حركة المادة</h2>
+                    <p class="section-subtitle">حركة مادة واحدة في مستودع، لكل الفترات أو ضمن فترة.</p>
+                    <div class="section-filters">
+                        <div class="form-group">
+                            <label>المادة:</label>
+                            <div class="searchable-select" id="materialMovementSelectDiv">
+                                <div class="selected-value empty" onclick="toggleMaterialMovementOptions()">
+                                    <span id="materialMovementDisplay">اختر المادة</span>
+                                </div>
+                                <div class="options-list" id="materialMovementOptions">
+                                    <input type="text" id="materialMovementSearch" placeholder="ابحث عن مادة..." onkeyup="filterMaterialMovementOptions()" onclick="event.stopPropagation()">
+                                    <div id="materialMovementOptionsList"></div>
+                                </div>
+                                <input type="hidden" id="materialMovementSelect" value="">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>المستودع:</label>
+                            <select id="warehouseMovementSelect">
+                                <option value="">اختر المستودع</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>الفترة:</label>
+                            <label style="font-weight: 400; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                                <input type="radio" id="materialMovementPeriodAll" name="materialMovementPeriod" value="all" checked onchange="if(window.toggleMaterialMovementDateInputs)window.toggleMaterialMovementDateInputs()">
+                                جميع الفترات
+                            </label>
+                            <label style="font-weight: 400; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <input type="radio" id="materialMovementPeriodRange" name="materialMovementPeriod" value="range" onchange="if(window.toggleMaterialMovementDateInputs)window.toggleMaterialMovementDateInputs()">
+                                فترة محددة
+                            </label>
+                            <div id="materialMovementDateInputsContainer" style="display: none; margin-top: 8px;">
+                                <label>من تاريخ:</label>
+                                <input type="date" id="materialMovementFromDate" style="margin-bottom: 8px;">
+                                <label>إلى تاريخ:</label>
+                                <input type="date" id="materialMovementToDate">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadMaterialMovementReport()">عرض التقرير</button>
+                    </div>
+                    <div id="materialMovementReport">
+                        <div id="materialMovementReportContent"></div>
+                    </div>
+                </div>
+
+                <div id="reportUserWork" class="section">
+                    <div class="section-toolbar">
+                        <button type="button" class="btn btn-secondary" onclick="showSection('reports')">رجوع إلى التقارير</button>
+                        <button type="button" class="btn btn-info" onclick="printUserWorkReport()">طباعة</button>
+                    </div>
+                    <h2 class="section-block-title">تقرير عمل المستخدمين</h2>
+                    <p class="section-subtitle">يُحسب اليوم من وقت حفظ العملية في النظام. التاريخ الذي يكتبه المستخدم في نموذج العملية يظهر للمقارنة فقط، ولا يُستخدم في الفلتر.</p>
+                    <div class="section-filters">
+                        <div class="form-group">
+                            <label>يوم التسجيل الفعلي:</label>
+                            <input type="date" id="userWorkReportDate">
+                        </div>
+                        <div class="form-group">
+                            <label>المستخدم:</label>
+                            <select id="userWorkReportUser">
+                                <option value="">جميع المستخدمين</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>نوع العملية:</label>
+                            <select id="userWorkReportType">
+                                <option value="all">الكل</option>
+                                <option value="receive">استلام</option>
+                                <option value="deliver">تسليم</option>
+                                <option value="return">استرداد</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadUserWorkReport()">عرض التقرير</button>
+                    </div>
+                    <div id="userWorkReportSummary" class="report-summary"></div>
+                    <div id="userWorkReport">
+                        <div id="userWorkReportContent"></div>
                     </div>
                 </div>
 
                 <!-- Users Management Section -->
                 <div id="users" class="section">
                     <div class="section-toolbar">
-                        <h2>إدارة المستخدمين والصلاحيات</h2>
+                        <p class="section-subtitle">كل مستخدم له دور، ثم نطاق وصول، ثم صلاحيات السجلات والعمليات.</p>
                         <button class="btn btn-primary" onclick="showUserModal()">إضافة مستخدم جديد</button>
                     </div>
                     <table>
                         <thead>
                             <tr>
-                                <th>البريد الإلكتروني</th>
-                                <th>الاسم</th>
-                                <th>نوع الصلاحية / المستودعات</th>
-                                <th>نوع الصلاحية / مواقع العمل</th>
-                                <th>صلاحيات الإدارة</th>
+                                <th>المستخدم</th>
+                                <th>الدور</th>
+                                <th>نطاق الوصول</th>
+                                <th>العمليات</th>
+                                <th>إدارة السجلات</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
@@ -1762,15 +2289,15 @@
                 <!-- Activity Log Section -->
                 <div id="activityLog" class="section">
                     <div class="section-toolbar">
-                        <h2>سجل العمليات</h2>
-                        <div style="display: flex; gap: 10px;">
-                            <select id="activityLogFilter" onchange="loadActivityLog()" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        <p class="section-subtitle">سجل الإضافة والتعديل والحذف على بيانات النظام.</p>
+                        <div class="section-toolbar-actions">
+                            <select id="activityLogFilter" onchange="loadActivityLog()">
                                 <option value="all">جميع العمليات</option>
                                 <option value="create">إضافة</option>
                                 <option value="update">تعديل</option>
                                 <option value="delete">حذف</option>
                             </select>
-                            <select id="activityLogEntityFilter" onchange="loadActivityLog()" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <select id="activityLogEntityFilter" onchange="loadActivityLog()">
                                 <option value="all">جميع الكيانات</option>
                                 <option value="material">المواد</option>
                                 <option value="warehouse">المستودعات</option>
@@ -1781,40 +2308,36 @@
                             </select>
                         </div>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>التاريخ والوقت</th>
-                                    <th>المستخدم</th>
-                                    <th>نوع العملية</th>
-                                    <th>الكيان</th>
-                                    <th>التفاصيل</th>
-                                    <th>التغييرات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="activityLogTableBody">
-                                <tr>
-                                    <td colspan="6" style="text-align: center; padding: 20px; color: #999;">
-                                        جارٍ تحميل سجل العمليات...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>التاريخ والوقت</th>
+                                <th>المستخدم</th>
+                                <th>نوع العملية</th>
+                                <th>الكيان</th>
+                                <th>التفاصيل</th>
+                                <th>التغييرات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityLogTableBody">
+                            <tr>
+                                <td colspan="6" class="empty-note">جارٍ تحميل سجل العمليات...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+        <footer class="footer">
+            <div class="footer-content">
+                <span class="app-version" data-app-version></span>
+                <span>|</span>
+                <span>© 2024 RoseMary للحلول البرمجية - نظام إدارة المخزون والمستودعات. جميع الحقوق محفوظة.</span>
+                <span>|</span>
+                <span>RoseMary Software Solutions - Inventory Management System. All Rights Reserved.</span>
+            </div>
+        </footer>
     </div>
-    
-    <!-- Footer with Copyright -->
-    <footer class="footer">
-        <div class="footer-content">
-            <span>© 2024 RoseMary للحلول البرمجية - نظام إدارة المخزون والمستودعات. جميع الحقوق محفوظة.</span>
-            <span>|</span>
-            <span>RoseMary Software Solutions - Inventory Management System. All Rights Reserved.</span>
-        </div>
-    </footer>
 
     <!-- Material Modal -->
     <div id="materialModal" class="modal">
@@ -2276,93 +2799,122 @@
                     <input type="text" id="userName" placeholder="الاسم (اختياري)">
                 </div>
                 <div class="form-section">
-                    <div class="form-section-title" style="border-bottom-color: #3498db;">نوع الصلاحية</div>
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-                            <input type="radio" name="userPermissionType" value="full" id="permissionFull" checked style="margin-left: 8px; width: 18px; height: 18px;" onchange="togglePermissionType()">
-                            <span>صلاحية كاملة (الوصول لجميع المستودعات ومواقع العمل)</span>
+                    <div class="form-section-title">الدور</div>
+                    <p class="section-subtitle" style="margin-top: 0;">اختيار الدور يضبط النطاق وإدارة السجلات والعمليات دفعة واحدة. أي تعديل يدوي بعد ذلك يحوّل الدور إلى مخصص.</p>
+                    <div class="role-grid">
+                        <label class="role-card">
+                            <input type="radio" name="userAccessRole" value="manager" onchange="applyAccessRole('manager')">
+                            <span><strong>مدير</strong><small>وصول كامل، إدارة كل السجلات، وكل العمليات</small></span>
                         </label>
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="radio" name="userPermissionType" value="custom" id="permissionCustom" style="margin-left: 8px; width: 18px; height: 18px;" onchange="togglePermissionType()">
-                            <span>صلاحية مخصصة (تحديد المستودعات ومواقع العمل)</span>
+                        <label class="role-card">
+                            <input type="radio" name="userAccessRole" value="supervisor" onchange="applyAccessRole('supervisor')">
+                            <span><strong>مشرف</strong><small>وصول كامل وعمليات كاملة، بدون تعديل السجلات الأساسية</small></span>
+                        </label>
+                        <label class="role-card">
+                            <input type="radio" name="userAccessRole" value="clerk" onchange="applyAccessRole('clerk')">
+                            <span><strong>أمين عمليات</strong><small>نطاق محدد، إضافة وتعديل العمليات فقط</small></span>
+                        </label>
+                        <label class="role-card">
+                            <input type="radio" name="userAccessRole" value="viewer" onchange="applyAccessRole('viewer')">
+                            <span><strong>عرض فقط</strong><small>اطلاع على كل البيانات بدون إضافة أو تعديل أو حذف</small></span>
+                        </label>
+                        <label class="role-card">
+                            <input type="radio" name="userAccessRole" value="custom" id="roleCustom" checked onchange="applyAccessRole('custom')">
+                            <span><strong>مخصص</strong><small>تحديد النطاق والسجلات والعمليات يدوياً</small></span>
                         </label>
                     </div>
                 </div>
-                <div class="form-section" id="customPermissionsSection" style="margin-top: 20px; display: none;">
-                    <div class="form-section-title" style="border-bottom-color: #3498db;">المستودعات المصرح بها</div>
-                    <div id="userWarehousesList" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-                        <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل المستودعات...</p>
-                    </div>
-                    <small style="color: #666; font-size: 12px;">اختر المستودعات التي يمكن للمستخدم الوصول إليها</small>
+                <div class="perm-tabs">
+                    <button type="button" class="perm-tab active" data-perm-tab="scope" onclick="switchPermTab('scope')">نطاق الوصول</button>
+                    <button type="button" class="perm-tab" data-perm-tab="records" onclick="switchPermTab('records')">إدارة السجلات</button>
+                    <button type="button" class="perm-tab" data-perm-tab="ops" onclick="switchPermTab('ops')">العمليات</button>
                 </div>
-                <div class="form-section" id="customWorkSitesSection" style="margin-top: 20px; display: none;">
-                    <div class="form-section-title" style="border-bottom-color: #3498db;">مجموعات مواقع العمل المصرح بها</div>
-                    <div id="userWorkSiteGroupsList" style="max-height: 160px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-                        <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل المجموعات...</p>
-                    </div>
-                    <small style="color: #666; font-size: 12px;">اختر المجموعات: للمستخدم الوصول لجميع مواقع العمل ضمن كل مجموعة محددة</small>
-                    <div class="form-section-title" style="border-bottom-color: #3498db; margin-top: 12px;">مواقع عمل إضافية (فردية)</div>
-                    <div id="userWorkSitesList" style="max-height: 160px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-                        <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل مواقع العمل...</p>
-                    </div>
-                    <small style="color: #666; font-size: 12px;">اختر مواقع عمل إضافية غير مدرجة في المجموعات أعلاه</small>
-                </div>
-                <div class="form-section" id="customSuppliersSection" style="margin-top: 20px; display: none;">
-                    <div class="form-section-title" style="border-bottom-color: #3498db;">المزودين المصرح لهم</div>
-                    <div id="userSuppliersList" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-                        <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل المزودين...</p>
-                    </div>
-                    <small style="color: #666; font-size: 12px;">اختر المزودين التي يمكن للمستخدم الوصول إليها</small>
-                </div>
-                <div class="form-section" style="margin-top: 20px;">
-                    <div class="form-section-title" style="border-bottom-color: #3498db;">صلاحيات الإدارة</div>
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-                            <input type="checkbox" id="userCanManageMaterials" style="margin-left: 8px; width: 18px; height: 18px;">
-                            <span>إدارة المواد (إضافة/تعديل/حذف)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-                            <input type="checkbox" id="userCanManageWarehouses" style="margin-left: 8px; width: 18px; height: 18px;">
-                            <span>إدارة المستودعات (إضافة/تعديل/حذف)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-                            <input type="checkbox" id="userCanManageWorkSites" style="margin-left: 8px; width: 18px; height: 18px;">
-                            <span>إدارة مواقع العمل (إضافة/تعديل/حذف)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-                            <input type="checkbox" id="userCanManageSuppliers" style="margin-left: 8px; width: 18px; height: 18px;">
-                            <span>إدارة المزودين (إضافة/تعديل/حذف)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="userCanManageUnits" style="margin-left: 8px; width: 18px; height: 18px;">
-                            <span>إدارة الوحدات (إضافة/تعديل/حذف)</span>
-                        </label>
-                    </div>
-                    <div class="form-section" style="margin-top: 15px;">
-                        <div class="form-section-title" style="border-bottom-color: #3498db;">صلاحيات عمليات الاستلام</div>
-                        <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px 25px;">
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReceiveAdd" style="margin-left: 8px; width: 18px; height: 18px;"> <span>إضافة</span></label>
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReceiveEdit" style="margin-left: 8px; width: 18px; height: 18px;"> <span>تعديل</span></label>
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReceiveDelete" style="margin-left: 8px; width: 18px; height: 18px;"> <span>حذف</span></label>
+                <div class="perm-panel active" data-perm-panel="scope">
+                    <div class="form-section">
+                        <div class="form-section-title">نطاق الوصول</div>
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
+                                <input type="radio" name="userPermissionType" value="full" id="permissionFull" checked style="margin-left: 8px; width: 18px; height: 18px;" onchange="togglePermissionType(); markRoleCustom();">
+                                <span>كامل: كل المستودعات ومواقع العمل والمزودين</span>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="userPermissionType" value="custom" id="permissionCustom" style="margin-left: 8px; width: 18px; height: 18px;" onchange="togglePermissionType(); markRoleCustom();">
+                                <span>محدود: اختيار المستودعات ومواقع العمل والمزودين</span>
+                            </label>
                         </div>
                     </div>
-                    <div class="form-section" style="margin-top: 15px;">
-                        <div class="form-section-title" style="border-bottom-color: #3498db;">صلاحيات عمليات التسليم</div>
-                        <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px 25px;">
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userDeliverAdd" style="margin-left: 8px; width: 18px; height: 18px;"> <span>إضافة</span></label>
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userDeliverEdit" style="margin-left: 8px; width: 18px; height: 18px;"> <span>تعديل</span></label>
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userDeliverDelete" style="margin-left: 8px; width: 18px; height: 18px;"> <span>حذف</span></label>
+                    <div class="form-section" id="customPermissionsSection" style="display: none;">
+                        <div class="form-section-title">المستودعات</div>
+                        <div id="userWarehousesList" class="scope-list">
+                            <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل المستودعات...</p>
                         </div>
                     </div>
-                    <div class="form-section" style="margin-top: 15px;">
-                        <div class="form-section-title" style="border-bottom-color: #3498db;">صلاحيات عمليات الاسترداد</div>
-                        <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px 25px;">
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReturnAdd" style="margin-left: 8px; width: 18px; height: 18px;"> <span>إضافة</span></label>
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReturnEdit" style="margin-left: 8px; width: 18px; height: 18px;"> <span>تعديل</span></label>
-                            <label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" id="userReturnDelete" style="margin-left: 8px; width: 18px; height: 18px;"> <span>حذف</span></label>
+                    <div class="form-section" id="customWorkSitesSection" style="display: none;">
+                        <div class="form-section-title">مجموعات مواقع العمل</div>
+                        <div id="userWorkSiteGroupsList" class="scope-list">
+                            <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل المجموعات...</p>
+                        </div>
+                        <small style="color: #666; font-size: 12px;">المجموعة تمنح الوصول لكل مواقع العمل داخلها.</small>
+                        <div class="form-section-title" style="margin-top: 12px;">مواقع عمل إضافية</div>
+                        <div id="userWorkSitesList" class="scope-list">
+                            <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل مواقع العمل...</p>
                         </div>
                     </div>
-                    <small style="color: #666; font-size: 12px;">اختر الصلاحيات التي يمكن للمستخدم القيام بها</small>
+                    <div class="form-section" id="customSuppliersSection" style="display: none;">
+                        <div class="form-section-title">المزودون</div>
+                        <div id="userSuppliersList" class="scope-list">
+                            <p style="color: #666; font-style: italic; text-align: center;">جارٍ تحميل المزودين...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="perm-panel" data-perm-panel="records">
+                    <div class="form-section">
+                        <div class="form-section-title">إدارة السجلات الأساسية</div>
+                        <p class="section-subtitle" style="margin-top: 0;">عرض التقارير يفتح صفحات التقارير دون الحاجة إلى صلاحية كاملة. إدارة السجلات تسمح بالإضافة والتعديل والحذف، والاطلاع يبقى متاحاً بدونها.</p>
+                        <div class="check-grid">
+                            <label><input type="checkbox" id="userCanViewReports" onchange="markRoleCustom()"> عرض التقارير</label>
+                            <label><input type="checkbox" id="userCanManageMaterials" onchange="markRoleCustom()"> المواد</label>
+                            <label><input type="checkbox" id="userCanManageWarehouses" onchange="markRoleCustom()"> المستودعات</label>
+                            <label><input type="checkbox" id="userCanManageWorkSites" onchange="markRoleCustom()"> مواقع العمل</label>
+                            <label><input type="checkbox" id="userCanManageSuppliers" onchange="markRoleCustom()"> المزودون</label>
+                            <label><input type="checkbox" id="userCanManageUnits" onchange="markRoleCustom()"> الوحدات</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="perm-panel" data-perm-panel="ops">
+                    <div class="form-section">
+                        <div class="form-section-title">عمليات المخزون</div>
+                        <table class="perm-matrix">
+                            <thead>
+                                <tr>
+                                    <th>العملية</th>
+                                    <th>إضافة</th>
+                                    <th>تعديل</th>
+                                    <th>حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>الاستلام</td>
+                                    <td><input type="checkbox" id="userReceiveAdd" onchange="markRoleCustom()"></td>
+                                    <td><input type="checkbox" id="userReceiveEdit" onchange="markRoleCustom()"></td>
+                                    <td><input type="checkbox" id="userReceiveDelete" onchange="markRoleCustom()"></td>
+                                </tr>
+                                <tr>
+                                    <td>التسليم</td>
+                                    <td><input type="checkbox" id="userDeliverAdd" onchange="markRoleCustom()"></td>
+                                    <td><input type="checkbox" id="userDeliverEdit" onchange="markRoleCustom()"></td>
+                                    <td><input type="checkbox" id="userDeliverDelete" onchange="markRoleCustom()"></td>
+                                </tr>
+                                <tr>
+                                    <td>الاسترداد</td>
+                                    <td><input type="checkbox" id="userReturnAdd" onchange="markRoleCustom()"></td>
+                                    <td><input type="checkbox" id="userReturnEdit" onchange="markRoleCustom()"></td>
+                                    <td><input type="checkbox" id="userReturnDelete" onchange="markRoleCustom()"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">حفظ</button>
@@ -2371,6 +2923,101 @@
             </form>
         </div>
     </div>
+
+    <div id="updateDialog" class="update-dialog" hidden>
+        <div class="update-dialog-card" role="dialog" aria-modal="true" aria-labelledby="updateDialogTitle">
+            <h2 id="updateDialogTitle">يتوفر تحديث</h2>
+            <p id="updateDialogText"></p>
+            <p id="updateDialogNotes" class="section-subtitle"></p>
+            <div class="update-dialog-actions">
+                <button type="button" class="btn btn-secondary" onclick="dismissAppUpdate()">لاحقاً</button>
+                <button type="button" class="btn btn-primary" onclick="applyAppUpdate()">تحديث الآن</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // عند كل نشر: ارفع هذا الرقم، ونفس الرقم في version.json
+        const APP_VERSION = '1.1.0';
+        window.APP_VERSION = APP_VERSION;
+
+        document.querySelectorAll('[data-app-version]').forEach(function(el) {
+            el.textContent = 'الإصدار ' + APP_VERSION;
+        });
+
+        function versionParts(value) {
+            return String(value || '').split('.').map(function(part) {
+                const number = parseInt(part, 10);
+                return Number.isFinite(number) ? number : 0;
+            });
+        }
+
+        function isNewerVersion(remote, local) {
+            const next = versionParts(remote);
+            const current = versionParts(local);
+            const length = Math.max(next.length, current.length);
+            for (let i = 0; i < length; i++) {
+                const diff = (next[i] || 0) - (current[i] || 0);
+                if (diff > 0) return true;
+                if (diff < 0) return false;
+            }
+            return false;
+        }
+
+        window.showAppUpdatePrompt = function(remoteVersion, notes) {
+            if (!isNewerVersion(remoteVersion, APP_VERSION)) return;
+            if (sessionStorage.getItem('appUpdateDismissed') === remoteVersion) return;
+            const dialog = document.getElementById('updateDialog');
+            const text = document.getElementById('updateDialogText');
+            const notesEl = document.getElementById('updateDialogNotes');
+            if (!dialog || !text) return;
+            dialog.dataset.remoteVersion = remoteVersion;
+            text.textContent = 'إصدار هذه الصفحة ' + APP_VERSION + '، والإصدار الجديد ' + remoteVersion + '. حدّث الصفحة لتحميل آخر نسخة.';
+            if (notesEl) {
+                notesEl.textContent = notes || '';
+                notesEl.style.display = notes ? 'block' : 'none';
+            }
+            dialog.hidden = false;
+        };
+
+        window.dismissAppUpdate = function() {
+            const dialog = document.getElementById('updateDialog');
+            if (dialog && dialog.dataset.remoteVersion) {
+                sessionStorage.setItem('appUpdateDismissed', dialog.dataset.remoteVersion);
+            }
+            if (dialog) dialog.hidden = true;
+        };
+
+        window.applyAppUpdate = function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('v', Date.now().toString());
+            window.location.replace(url.href);
+        };
+
+        let appUpdateCheckRunning = false;
+        async function checkAppUpdate() {
+            if (appUpdateCheckRunning || window.location.protocol === 'file:') return;
+            appUpdateCheckRunning = true;
+            try {
+                const versionUrl = new URL('version.json', window.location.href);
+                versionUrl.searchParams.set('ts', Date.now().toString());
+                const response = await fetch(versionUrl.href, { cache: 'no-store' });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (data && data.version) window.showAppUpdatePrompt(data.version, data.notes || '');
+            } catch (error) {
+                console.warn('App update check failed', error);
+            } finally {
+                appUpdateCheckRunning = false;
+            }
+        }
+
+        checkAppUpdate();
+        setInterval(checkAppUpdate, 5 * 60 * 1000);
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') checkAppUpdate();
+        });
+    </script>
 
     <!-- Firebase SDK -->
     <script type="module">
@@ -2460,13 +3107,28 @@
         }
 
         // Login function
+        window.toggleLoginPassword = function() {
+            const input = document.getElementById('password');
+            const toggle = document.getElementById('passwordToggle');
+            if (!input || !toggle) return;
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            toggle.textContent = show ? 'إخفاء' : 'إظهار';
+        };
+
         window.login = async function() {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('loginSubmitBtn');
 
             if (!email || !password) {
                 showLoginAlert('الرجاء إدخال البريد الإلكتروني وكلمة المرور', 'error');
                 return;
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'جارٍ الدخول...';
             }
 
             try {
@@ -2489,6 +3151,10 @@
                     showLoginAlert('خطأ 400: أضف النطاق alialq93.github.io في Firebase (Authentication > Authorized domains) ومفتاح API', 'error');
                 } else {
                     showLoginAlert('خطأ في تسجيل الدخول: ' + (msg || code), 'error');
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'دخول';
                 }
             }
         };
@@ -2654,6 +3320,12 @@
                 'inventoryVerification': 'التحقق من المخزون وصيانته',
                 'reports': 'التقارير',
                 'users': 'إدارة المستخدمين',
+                'activityLog': 'سجل العمليات',
+                'navHome': 'الرئيسية',
+                'navMaster': 'البيانات الأساسية',
+                'navOps': 'العمليات',
+                'navFollow': 'المتابعة',
+                'navAdmin': 'الإدارة',
                 'systemTitle': 'نظام المخزون',
                 
                 // Titles
@@ -2773,6 +3445,12 @@
                 'inventoryVerification': 'Inventory Verification & Maintenance',
                 'reports': 'Reports',
                 'users': 'Users Management',
+                'activityLog': 'Activity Log',
+                'navHome': 'Home',
+                'navMaster': 'Master Data',
+                'navOps': 'Operations',
+                'navFollow': 'Monitoring',
+                'navAdmin': 'Administration',
                 'systemTitle': 'Inventory System',
                 
                 // Titles
@@ -2915,16 +3593,12 @@
             document.documentElement.dir = window.currentLanguage === 'ar' ? 'rtl' : 'ltr';
             document.documentElement.lang = window.currentLanguage === 'ar' ? 'ar' : 'en';
             
-            // Update menu items
-            const menuItems = document.querySelectorAll('.menu-item');
-            const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'workSiteGroups', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'inventoryVerification', 'reports', 'users'];
-            menuItems.forEach((item, index) => {
-                if (index < menuKeys.length) {
-                    const textNode = Array.from(item.childNodes).find(node => node.nodeType === 3 && node.textContent.trim());
-                    if (textNode) {
-                        textNode.textContent = ' ' + window.t(menuKeys[index]);
-                    }
-                }
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = window.t(el.getAttribute('data-i18n'));
+            });
+            document.querySelectorAll('.menu-item[data-section]').forEach(item => {
+                const label = item.querySelector('.menu-label');
+                if (label) label.textContent = window.t(item.getAttribute('data-section'));
             });
             
             // Update system title
@@ -3051,6 +3725,12 @@
         }
         
         // Update visibility of management buttons based on permissions
+        function userCanViewReports() {
+            const permissions = window.currentUserPermissions;
+            if (!permissions) return false;
+            return !!(permissions.isAdmin || permissions.permissionType === 'full' || permissions.canViewReports === true);
+        }
+
         function updateManagementButtonsVisibility() {
             if (!window.currentUserPermissions) {
                 console.log('No permissions loaded, hiding all management buttons');
@@ -3059,6 +3739,11 @@
                     if (btn.onclick && btn.onclick.toString().includes('show') && btn.onclick.toString().includes('Modal')) {
                         btn.style.display = 'none';
                     }
+                });
+                ['inventoryVerification', 'reports', 'users', 'activityLog', 'workSiteGroups'].forEach(section => {
+                    document.querySelectorAll(`.menu-item[data-section="${section}"]`).forEach(el => {
+                        el.style.display = 'none';
+                    });
                 });
                 return;
             }
@@ -3087,6 +3772,10 @@
             if (workSiteAddBtn) {
                 workSiteAddBtn.style.display = canManageWorkSites ? 'inline-block' : 'none';
             }
+            const workSiteGroupAddBtn = document.querySelector('button[onclick="showWorkSiteGroupModal()"]');
+            if (workSiteGroupAddBtn) {
+                workSiteGroupAddBtn.style.display = canManageWorkSites ? 'inline-block' : 'none';
+            }
             
             // Suppliers
             const supplierAddBtn = document.querySelector('button[onclick="showSupplierModal()"]');
@@ -3111,15 +3800,21 @@
             if (deliverAddBtn) deliverAddBtn.style.display = canAddDeliver ? 'inline-block' : 'none';
             if (returnAddBtn) returnAddBtn.style.display = canAddReturn ? 'inline-block' : 'none';
             
-            // التحقق من المخزون وصيانته: إظهار عنصر القائمة للمدير أو الصلاحية الكاملة فقط
             const hasFullPermissions = isAdmin || (window.currentUserPermissions.permissionType === 'full');
-            const inventoryVerificationMenuItems = document.querySelectorAll('.menu-item[onclick*="inventoryVerification"]');
-            inventoryVerificationMenuItems.forEach(el => {
-                el.style.display = hasFullPermissions ? '' : 'none';
-            });
-            const reportsMenuItems = document.querySelectorAll('.menu-item[onclick*="reports"]');
-            reportsMenuItems.forEach(el => {
-                el.style.display = hasFullPermissions ? '' : 'none';
+            const setMenuVisible = (section, visible) => {
+                document.querySelectorAll(`.menu-item[data-section="${section}"]`).forEach(el => {
+                    el.style.display = visible ? '' : 'none';
+                });
+            };
+            setMenuVisible('inventoryVerification', hasFullPermissions);
+            setMenuVisible('reports', userCanViewReports());
+            setMenuVisible('users', hasFullPermissions);
+            setMenuVisible('activityLog', hasFullPermissions);
+            setMenuVisible('workSiteGroups', isAdmin || hasFullPermissions || canManageWorkSites);
+            document.querySelectorAll('.nav-group').forEach(group => {
+                const items = Array.from(group.querySelectorAll('.menu-item'));
+                const anyVisible = items.some(item => item.style.display !== 'none');
+                group.style.display = anyVisible ? '' : 'none';
             });
             
             // Note: We don't call display functions here to avoid infinite loops
@@ -3129,6 +3824,7 @@
 
         function refreshResponsiveTables() {
             document.querySelectorAll('.section table').forEach(table => {
+                if (table.closest('.report-sheet')) return;
                 if (!table.parentElement.classList.contains('table-wrapper')) {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'table-wrapper';
@@ -3205,6 +3901,7 @@
             window.currentSection = sectionId;
             
             const hasFullPermissions = window.currentUserPermissions && (window.currentUserPermissions.isAdmin || window.currentUserPermissions.permissionType === 'full');
+            const reportSections = ['reports', 'reportWarehouse', 'reportWorkSite', 'reportMovement', 'reportUserWork'];
             
             // التحقق من المخزون وصيانته: للمدير أو الصلاحية الكاملة فقط
             if (sectionId === 'inventoryVerification') {
@@ -3225,9 +3922,9 @@
                     checkActivityLogPassword();
                     return;
                 }
-            } else if (sectionId === 'reports') {
-                if (!hasFullPermissions) {
-                    showAlert('صلاحية المدير أو الصلاحية الكاملة مطلوبة للوصول إلى قسم التقارير.', 'error');
+            } else if (reportSections.includes(sectionId)) {
+                if (!userCanViewReports()) {
+                    showAlert('لا توجد صلاحية لعرض التقارير. اطلب من المدير تفعيل «عرض التقارير» أو منح صلاحية كاملة.', 'error');
                     return;
                 }
             } else if (sectionId === 'inventory') {
@@ -3241,35 +3938,37 @@
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
-            // Remove active from all menu items
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
             });
-            // Show selected section
             document.getElementById(sectionId).classList.add('active');
-            // Add active to clicked menu item
-            if (event && event.target) {
-                event.target.closest('.menu-item').classList.add('active');
-            } else {
-                // Find menu item by section ID
-                const menuItems = document.querySelectorAll('.menu-item');
-                const menuKeys = ['dashboard', 'materials', 'warehouses', 'workSites', 'workSiteGroups', 'suppliers', 'units', 'receive', 'deliver', 'return', 'inventory', 'inventoryVerification', 'reports', 'users', 'activityLog'];
-                const index = menuKeys.indexOf(sectionId);
-                if (index >= 0 && menuItems[index]) {
-                    menuItems[index].classList.add('active');
-                }
-            }
+            const menuSection = ['reports', 'reportWarehouse', 'reportWorkSite', 'reportMovement', 'reportUserWork'].includes(sectionId) ? 'reports' : sectionId;
+            const activeMenu = document.querySelector(`.menu-item[data-section="${menuSection}"]`);
+            if (activeMenu) activeMenu.classList.add('active');
 
-            // Update page title using translations
-            document.getElementById('pageTitle').textContent = window.t(sectionId) || sectionId;
+            const reportTitles = {
+                reports: 'التقارير',
+                reportWarehouse: 'تقرير جرد المستودعات',
+                reportWorkSite: 'تقرير المواد المسلمة',
+                reportMovement: 'تقرير حركة المادة',
+                reportUserWork: 'تقرير عمل المستخدمين'
+            };
+            document.getElementById('pageTitle').textContent = reportTitles[sectionId] || window.t(sectionId) || sectionId;
 
             // Load section data
             if (sectionId === 'dashboard') {
                 loadDashboard();
             } else if (sectionId === 'inventory') {
                 loadInventory();
-            } else if (sectionId === 'reports') {
-                loadReportsSection();
+            } else if (sectionId === 'reports' || sectionId === 'reportWarehouse' || sectionId === 'reportWorkSite' || sectionId === 'reportMovement' || sectionId === 'reportUserWork') {
+                const reportsReady = loadReportsSection();
+                if (sectionId === 'reportWarehouse') {
+                    reportsReady.then(function() {
+                        if (window.currentSection === 'reportWarehouse' && typeof window.loadWarehouseInventoryReport === 'function') {
+                            window.loadWarehouseInventoryReport();
+                        }
+                    });
+                }
             } else if (sectionId === 'receive') {
                 loadReceives();
             } else if (sectionId === 'deliver') {
@@ -3987,11 +4686,11 @@
                 displayWarehouses();
                 
                 // Populate warehouse selects
-                ['receiveWarehouse', 'deliverWarehouse', 'returnWarehouse', 'inventoryWarehouse', 'reportWarehouse'].forEach(selectId => {
+                ['receiveWarehouse', 'deliverWarehouse', 'returnWarehouse', 'inventoryWarehouse'].forEach(selectId => {
                     const select = document.getElementById(selectId);
-                    if (select) {
+                    if (select && select.tagName === 'SELECT') {
                         const currentValue = select.value;
-                        select.innerHTML = selectId === 'inventoryWarehouse' || selectId === 'reportWarehouse' 
+                        select.innerHTML = selectId === 'inventoryWarehouse'
                             ? '<option value="">جميع المستودعات</option>'
                             : '<option value="">اختر المستودع</option>';
                         const filteredWarehouses = window.getFilteredWarehousesSync ? window.getFilteredWarehousesSync() : window.warehouses;
@@ -5542,7 +6241,9 @@
                     // Update transaction
                     await updateDoc(doc(db, 'transactions', window.editingReceiveId), {
                         ...transactionData,
-                        updatedAt: Timestamp.now()
+                        createdAt: (oldData && oldData.createdAt) ? oldData.createdAt : transactionData.createdAt,
+                        updatedAt: Timestamp.now(),
+                        ...transactionActorFields('update')
                     });
                     
                     // Apply new inventory changes (add new quantities)
@@ -5556,7 +6257,10 @@
                     showAlert('تم تحديث عملية الاستلام بنجاح', 'success');
                 } else {
                     // Add mode: Just save and add to inventory
-                    const docRef = await addDoc(collection(db, 'transactions'), transactionData);
+                    const docRef = await addDoc(collection(db, 'transactions'), {
+                        ...transactionData,
+                        ...transactionActorFields('create')
+                    });
 
                     // Update inventory
                     for (const item of items) {
@@ -6823,7 +7527,8 @@
                     const { Timestamp } = window.firebaseCollections;
                     await updateDoc(doc(db, 'transactions', window.editingDeliverId), {
                         ...transactionData,
-                        updatedAt: Timestamp.now()
+                        updatedAt: Timestamp.now(),
+                        ...transactionActorFields('update')
                     });
                     
                     // Apply new inventory changes
@@ -6838,7 +7543,10 @@
                     showAlert('تم تحديث عملية التسليم بنجاح', 'success');
                 } else {
                     // Add mode: Just save and update inventory
-                    const docRef = await addDoc(collection(db, 'transactions'), transactionData);
+                    const docRef = await addDoc(collection(db, 'transactions'), {
+                        ...transactionData,
+                        ...transactionActorFields('create')
+                    });
 
                     // Update inventory - remove from warehouse, add to work site
                     for (const item of items) {
@@ -7698,7 +8406,9 @@
                     const { Timestamp } = window.firebaseCollections;
                     await updateDoc(doc(db, 'transactions', window.editingReturnId), {
                         ...transactionData,
-                        updatedAt: Timestamp.now()
+                        createdAt: oldData.createdAt || transactionData.createdAt,
+                        updatedAt: Timestamp.now(),
+                        ...transactionActorFields('update')
                     });
                     
                     // Apply new inventory changes
@@ -7715,7 +8425,10 @@
                     showAlert('تم تحديث عملية الاسترداد بنجاح', 'success');
                 } else {
                     // Add mode: Save transaction
-                    const docRef = await addDoc(collection(db, 'transactions'), transactionData);
+                    const docRef = await addDoc(collection(db, 'transactions'), {
+                        ...transactionData,
+                        ...transactionActorFields('create')
+                    });
 
                     // Update inventory - remove from work site, add to warehouse (only if status is usable)
                     for (const item of items) {
@@ -8676,8 +9389,8 @@
                 const snapshot = await getDocs(q);
                 
                 let todayCount = 0;
-                const recentDiv = document.getElementById('recentTransactions');
-                recentDiv.innerHTML = '';
+                const recentBody = document.getElementById('recentTransactionsBody');
+                recentBody.innerHTML = '';
 
                 snapshot.forEach((docSnapshot) => {
                     todayCount++;
@@ -8693,29 +9406,27 @@
                         'return': 'badge-warning'
                     };
 
-                    const location = data.warehouseId 
+                    const location = data.warehouseId
                         ? window.warehouses.find(w => w.id === data.warehouseId)?.name
                         : window.workSites.find(w => w.id === data.workSiteId)?.name;
 
-                    const transactionItem = document.createElement('div');
-                    transactionItem.className = 'transaction-item';
-                    transactionItem.innerHTML = `
-                        <div class="transaction-item-header">
-                            <span><strong>${typeLabels[data.type] || data.type}</strong> - ${data.number || 'بدون رقم'}</span>
-                            <span class="badge ${typeBadges[data.type] || 'badge-info'}">${typeLabels[data.type] || data.type}</span>
-                        </div>
-                        <div>الموقع: ${location || '-'}</div>
-                        <div>عدد المواد: ${data.items?.length || 0}</div>
-                        <div>التاريخ: ${window.formatDate(data.date)}</div>
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><span class="badge ${typeBadges[data.type] || 'badge-info'}">${typeLabels[data.type] || data.type}</span></td>
+                        <td>${data.number || '—'}</td>
+                        <td>${location || '—'}</td>
+                        <td>${data.items?.length || 0}</td>
+                        <td>${window.formatDate(data.date)}</td>
                     `;
-                    recentDiv.appendChild(transactionItem);
+                    recentBody.appendChild(row);
                 });
 
                 document.getElementById('statTotalTransactions').textContent = todayCount;
 
                 if (todayCount === 0) {
-                    recentDiv.innerHTML = '<p>لا توجد معاملات اليوم</p>';
+                    recentBody.innerHTML = '<tr><td colspan="5" class="empty-note">لا توجد معاملات اليوم</td></tr>';
                 }
+                if (typeof refreshResponsiveTables === 'function') refreshResponsiveTables();
             } catch (error) {
                 console.error('Error loading dashboard:', error);
             }
@@ -8827,9 +9538,211 @@
                 if (typeof window.toggleMaterialMovementDateInputs === 'function') {
                     window.toggleMaterialMovementDateInputs();
                 }
+                const userWorkDate = document.getElementById('userWorkReportDate');
+                if (userWorkDate && !userWorkDate.value) {
+                    const now = new Date();
+                    userWorkDate.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                }
+                const userWorkUser = document.getElementById('userWorkReportUser');
+                if (userWorkUser) {
+                    const currentUserValue = userWorkUser.value;
+                    userWorkUser.innerHTML = '<option value="">جميع المستخدمين</option>';
+                    (window.users || []).forEach(user => {
+                        if (!user.email) return;
+                        const option = document.createElement('option');
+                        option.value = user.email.toLowerCase();
+                        option.textContent = (user.name ? user.name + ' — ' : '') + user.email;
+                        userWorkUser.appendChild(option);
+                    });
+                    userWorkUser.value = currentUserValue;
+                }
             } catch (error) {
                 console.error('Error loading reports section:', error);
             }
+        };
+
+        function localDayKey(date) {
+            if (!date || isNaN(date.getTime())) return '';
+            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+        }
+
+        function timestampToDate(value) {
+            if (!value) return null;
+            if (value.toDate) return value.toDate();
+            const date = new Date(value);
+            return isNaN(date.getTime()) ? null : date;
+        }
+
+        window.loadUserWorkReport = async function() {
+            const dateInput = document.getElementById('userWorkReportDate');
+            const dateStr = dateInput ? dateInput.value : '';
+            const summary = document.getElementById('userWorkReportSummary');
+            const content = document.getElementById('userWorkReportContent');
+            if (!dateStr) {
+                showAlert('اختر يوم التسجيل الفعلي', 'error');
+                return;
+            }
+            if (summary) summary.innerHTML = '';
+            if (content) content.innerHTML = '<p class="empty-note">جارٍ تجهيز التقرير...</p>';
+            try {
+                const { collection, getDocs, getDoc, doc, query, where, orderBy, Timestamp } = window.firebaseCollections;
+                const db = window.firebaseDb;
+                const [year, month, day] = dateStr.split('-').map(Number);
+                const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+                const end = new Date(year, month - 1, day + 1, 0, 0, 0, 0);
+                const startTs = Timestamp.fromDate(start);
+                const endTs = Timestamp.fromDate(end);
+                const userFilter = (document.getElementById('userWorkReportUser')?.value || '').toLowerCase();
+                const typeFilter = document.getElementById('userWorkReportType')?.value || 'all';
+
+                const transactions = new Map();
+                try {
+                    const snap = await getDocs(query(collection(db, 'transactions'), where('createdAt', '>=', startTs), where('createdAt', '<', endTs), orderBy('createdAt', 'desc')));
+                    snap.forEach(item => transactions.set(item.id, { id: item.id, ...item.data() }));
+                } catch (rangeError) {
+                    const snap = await getDocs(collection(db, 'transactions'));
+                    snap.forEach(item => {
+                        const data = item.data();
+                        const created = timestampToDate(data.createdAt);
+                        if (created && created >= start && created < end) transactions.set(item.id, { id: item.id, ...data });
+                    });
+                }
+
+                const actors = {};
+                try {
+                    const logSnap = await getDocs(query(collection(db, 'activityLog'), where('timestamp', '>=', startTs), where('timestamp', '<', endTs)));
+                    logSnap.forEach(item => {
+                        const activity = item.data();
+                        if (activity.entityType !== 'transaction' || !activity.entityId) return;
+                        const previous = actors[activity.entityId];
+                        if (!previous || activity.action === 'create') actors[activity.entityId] = activity;
+                        if (!transactions.has(activity.entityId) && (activity.action === 'create' || activity.action === 'update')) {
+                            transactions.set(activity.entityId, { id: activity.entityId, _activityOnly: true, _activity: activity });
+                        }
+                    });
+                } catch (logError) {
+                    console.warn('User work report: activity log range query failed', logError);
+                }
+
+                for (const [id, row] of transactions) {
+                    if (row._activityOnly) {
+                        try {
+                            const snap = await getDoc(doc(db, 'transactions', id));
+                            if (snap.exists()) transactions.set(id, { id, ...snap.data(), _activity: row._activity });
+                            else transactions.delete(id);
+                        } catch (readError) {
+                            transactions.delete(id);
+                        }
+                    }
+                }
+
+                const typeLabels = { receive: 'استلام', deliver: 'تسليم', return: 'استرداد' };
+                const lines = [];
+                transactions.forEach(tx => {
+                    if (typeFilter !== 'all' && tx.type !== typeFilter) return;
+                    const created = timestampToDate(tx.createdAt);
+                    const activity = actors[tx.id] || tx._activity;
+                    const workedAt = timestampToDate(activity?.timestamp) || created;
+                    if (!workedAt || workedAt < start || workedAt >= end) return;
+                    const email = (tx.createdByEmail || activity?.userEmail || '').toLowerCase();
+                    const name = tx.createdByName || activity?.userName || email || 'غير معروف';
+                    if (userFilter && email !== userFilter) return;
+                    const entered = timestampToDate(tx.date);
+                    const enteredKey = entered ? localDayKey(entered) : '';
+                    const actualKey = localDayKey(workedAt);
+                    const warehouse = (window.warehouses || []).find(item => item.id === tx.warehouseId)?.name || '';
+                    const site = (window.workSites || []).find(item => item.id === tx.workSiteId)?.name || '';
+                    lines.push({
+                        name,
+                        email,
+                        type: typeLabels[tx.type] || tx.type || '—',
+                        action: activity?.action === 'update' && actualKey !== localDayKey(created || workedAt) ? 'تعديل' : 'تسجيل',
+                        number: tx.number || '—',
+                        place: [warehouse, site].filter(Boolean).join(' ← ') || '—',
+                        count: Array.isArray(tx.items) ? tx.items.length : 0,
+                        actual: window.formatDateTime(workedAt),
+                        entered: entered ? window.formatDate(entered) : '—',
+                        mismatch: !!(enteredKey && enteredKey !== actualKey)
+                    });
+                });
+                lines.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+
+                const byUser = {};
+                lines.forEach(line => {
+                    const key = line.email || line.name;
+                    if (!byUser[key]) byUser[key] = { name: line.name, count: 0, mismatch: 0 };
+                    byUser[key].count += 1;
+                    if (line.mismatch) byUser[key].mismatch += 1;
+                });
+                if (summary) {
+                    const cards = Object.values(byUser);
+                    summary.innerHTML = cards.length ? cards.map(card => `
+                        <div class="stat-card">
+                            <h3>${card.count}</h3>
+                            <p>${card.name}${card.mismatch ? ' · ' + card.mismatch + ' بتاريخ مختلف' : ''}</p>
+                        </div>
+                    `).join('') : '';
+                }
+                if (!content) return;
+                if (!lines.length) {
+                    content.innerHTML = '<p class="empty-note">لا توجد عمليات سُجّلت فعلياً في هذا اليوم.</p>';
+                    window.userWorkReportHtml = '';
+                    return;
+                }
+                const table = `
+                    <table class="design-table">
+                        <thead>
+                            <tr>
+                                <th>المستخدم</th>
+                                <th>العمل</th>
+                                <th>النوع</th>
+                                <th>الرقم</th>
+                                <th>المكان</th>
+                                <th>عدد المواد</th>
+                                <th>وقت التسجيل الفعلي</th>
+                                <th>التاريخ المكتوب</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lines.map(line => `
+                                <tr class="${line.mismatch ? 'report-mismatch' : ''}">
+                                    <td>${line.name}</td>
+                                    <td>${line.action}</td>
+                                    <td>${line.type}</td>
+                                    <td>${line.number}</td>
+                                    <td>${line.place}</td>
+                                    <td>${line.count}</td>
+                                    <td>${line.actual}</td>
+                                    <td>${line.entered}${line.mismatch ? ' · مختلف' : ''}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                content.innerHTML = table;
+                window.userWorkReportHtml = table;
+                if (typeof refreshResponsiveTables === 'function') refreshResponsiveTables();
+            } catch (error) {
+                console.error('User work report error:', error);
+                if (content) content.innerHTML = '';
+                showAlert('تعذر تحميل تقرير عمل المستخدمين', 'error');
+            }
+        };
+
+        window.printUserWorkReport = function() {
+            const dateStr = document.getElementById('userWorkReportDate')?.value || '';
+            const html = window.userWorkReportHtml;
+            if (!html) {
+                showAlert('الرجاء توليد التقرير أولاً', 'error');
+                return;
+            }
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>تقرير عمل المستخدمين</title>
+                <style>body{font-family:Arial,sans-serif;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right}tr.report-mismatch{background:#fff7ed}h1{font-size:20px}</style>
+                </head><body><h1>تقرير عمل المستخدمين — ${dateStr}</h1><p>حسب وقت التسجيل الفعلي في النظام.</p>${html}</body></html>`);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
         };
 
         window.warehouseReportSelectedMaterials = new Set();
@@ -8857,6 +9770,7 @@
             window.updateWarehouseReportMaterialDisplay();
             window.populateWarehouseReportMaterialOptions();
             window.filterWarehouseReportMaterialOptions();
+            if (window.scheduleWarehouseInventoryReport) window.scheduleWarehouseInventoryReport();
         };
 
         window.clearWarehouseReportMaterialSelection = function() {
@@ -8864,6 +9778,7 @@
             document.getElementById('warehouseReportMaterialOptions')?.classList.remove('show');
             window.updateWarehouseReportMaterialDisplay();
             window.populateWarehouseReportMaterialOptions();
+            if (window.scheduleWarehouseInventoryReport) window.scheduleWarehouseInventoryReport();
         };
 
         window.updateWarehouseReportMaterialDisplay = function() {
@@ -8908,11 +9823,50 @@
             });
         };
 
+        window.scheduleWarehouseInventoryReport = function() {
+            clearTimeout(window._warehouseReportTimer);
+            window._warehouseReportTimer = setTimeout(function() {
+                if (window.currentSection === 'reportWarehouse') window.loadWarehouseInventoryReport();
+            }, 250);
+        };
+
         // Warehouse Inventory Report
         window.loadWarehouseInventoryReport = async function() {
+            const reportDiv = document.getElementById('warehouseInventoryReport');
+            const contentDiv = document.getElementById('warehouseInventoryReportContent');
+            const token = (window._warehouseReportToken || 0) + 1;
+            window._warehouseReportToken = token;
+            if (contentDiv) {
+                contentDiv.innerHTML = '<p class="empty-note">جاري إعداد تقرير الجرد...</p>';
+            }
+            if (reportDiv) reportDiv.style.display = 'block';
             try {
-                const warehouseId = document.getElementById('warehouseReportSelect').value;
+                const warehouseSelect = document.getElementById('warehouseReportSelect');
+                if (!warehouseSelect) {
+                    if (contentDiv && token === window._warehouseReportToken) {
+                        contentDiv.innerHTML = '<p class="empty-note">تعذر العثور على صفحة التقرير. أعد تحميل الصفحة.</p>';
+                    }
+                    return;
+                }
+                const warehouseId = warehouseSelect.value;
                 const materialFilterIds = Array.from(window.warehouseReportSelectedMaterials || []);
+                if (warehouseId && window.currentUserPermissions && typeof window.hasWarehouseAccess === 'function' && !window.hasWarehouseAccess(warehouseId)) {
+                    if (contentDiv && token === window._warehouseReportToken) {
+                        contentDiv.innerHTML = '<p class="empty-note">لا توجد صلاحية لعرض جرد هذا المستودع</p>';
+                    }
+                    showAlert('لا توجد صلاحية لعرض جرد هذا المستودع', 'error');
+                    return;
+                }
+                const canSeeWarehouse = (id) => {
+                    if (!id) return false;
+                    if (warehouseId && id !== warehouseId) return false;
+                    if (window.currentUserPermissions && typeof window.hasWarehouseAccess === 'function' && !window.hasWarehouseAccess(id)) return false;
+                    return true;
+                };
+                const qtyOf = (value) => {
+                    const qty = parseFloat(value);
+                    return Number.isFinite(qty) ? qty : 0;
+                };
                 const { collection, getDocs, query, where } = window.firebaseCollections;
                 const db = window.firebaseDb;
                 
@@ -8926,27 +9880,9 @@
                 
                 // Get all transactions for the warehouse(s)
                 const transactionsRef = collection(db, 'transactions');
-                
-                // Get receive transactions (استلام)
-                let receiveQuery = query(transactionsRef, where('type', '==', 'receive'));
-                if (warehouseId) {
-                    receiveQuery = query(transactionsRef, where('type', '==', 'receive'), where('warehouseId', '==', warehouseId));
-                }
-                const receiveSnapshot = await getDocs(receiveQuery);
-                
-                // Get deliver transactions (تسليم)
-                let deliverQuery = query(transactionsRef, where('type', '==', 'deliver'));
-                if (warehouseId) {
-                    deliverQuery = query(transactionsRef, where('type', '==', 'deliver'), where('warehouseId', '==', warehouseId));
-                }
-                const deliverSnapshot = await getDocs(deliverQuery);
-                
-                // Get return transactions (استرداد)
-                let returnQuery = query(transactionsRef, where('type', '==', 'return'));
-                if (warehouseId) {
-                    returnQuery = query(transactionsRef, where('type', '==', 'return'), where('warehouseId', '==', warehouseId));
-                }
-                const returnSnapshot = await getDocs(returnQuery);
+                const receiveSnapshot = await getDocs(query(transactionsRef, where('type', '==', 'receive')));
+                const deliverSnapshot = await getDocs(query(transactionsRef, where('type', '==', 'deliver')));
+                const returnSnapshot = await getDocs(query(transactionsRef, where('type', '==', 'return')));
                 
                 // Aggregate data by warehouse and material
                 const warehousesData = {};
@@ -8955,7 +9891,7 @@
                 receiveSnapshot.forEach((doc) => {
                     const data = doc.data();
                     const whId = data.warehouseId;
-                    if (!whId) return;
+                    if (!canSeeWarehouse(whId)) return;
                     
                     if (!warehousesData[whId]) {
                         warehousesData[whId] = {};
@@ -8963,6 +9899,7 @@
                     
                     data.items?.forEach(item => {
                         const matId = item.materialId;
+                        if (!matId) return;
                         if (!warehousesData[whId][matId]) {
                             warehousesData[whId][matId] = {
                                 warehouseId: whId,
@@ -8978,7 +9915,7 @@
                                 unit: item.unit
                             };
                         }
-                        warehousesData[whId][matId].received += parseFloat(item.quantity) || 0;
+                        warehousesData[whId][matId].received += qtyOf(item.quantity);
                     });
                 });
                 
@@ -8986,7 +9923,7 @@
                 deliverSnapshot.forEach((doc) => {
                     const data = doc.data();
                     const whId = data.warehouseId;
-                    if (!whId) return;
+                    if (!canSeeWarehouse(whId)) return;
                     
                     if (!warehousesData[whId]) {
                         warehousesData[whId] = {};
@@ -8994,6 +9931,7 @@
                     
                     data.items?.forEach(item => {
                         const matId = item.materialId;
+                        if (!matId) return;
                         if (!warehousesData[whId][matId]) {
                             warehousesData[whId][matId] = {
                                 warehouseId: whId,
@@ -9009,7 +9947,7 @@
                                 unit: item.unit
                             };
                         }
-                        warehousesData[whId][matId].delivered += parseFloat(item.quantity) || 0;
+                        warehousesData[whId][matId].delivered += qtyOf(item.quantity);
                     });
                 });
                 
@@ -9017,7 +9955,7 @@
                 returnSnapshot.forEach((doc) => {
                     const data = doc.data();
                     const whId = data.warehouseId;
-                    if (!whId) return;
+                    if (!canSeeWarehouse(whId)) return;
                     
                     if (!warehousesData[whId]) {
                         warehousesData[whId] = {};
@@ -9025,6 +9963,7 @@
                     
                     data.items?.forEach(item => {
                         const matId = item.materialId;
+                        if (!matId) return;
                         if (!warehousesData[whId][matId]) {
                             warehousesData[whId][matId] = {
                                 warehouseId: whId,
@@ -9040,7 +9979,7 @@
                                 unit: item.unit
                             };
                         }
-                        const quantity = parseFloat(item.quantity) || 0;
+                        const quantity = qtyOf(item.quantity);
                         warehousesData[whId][matId].returned += quantity;
                         if (item.status === 'قابل للاستخدام') {
                             warehousesData[whId][matId].returnedUsable += quantity;
@@ -9070,8 +10009,8 @@
                 });
                 
                 // Generate report HTML
-                const reportDiv = document.getElementById('warehouseInventoryReport');
-                const contentDiv = document.getElementById('warehouseInventoryReportContent');
+                if (token !== window._warehouseReportToken) return;
+                if (!contentDiv) return;
                 
                 if (Object.keys(warehousesDataArray).length === 0) {
                     contentDiv.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">لا توجد بيانات مخزون في المستودعات المحددة</p>';
@@ -9090,10 +10029,10 @@
                 let html = '';
                 sortedWarehouseIds.forEach(whId => {
                     const warehouse = window.warehouses.find(w => w.id === whId);
-                    let items = warehousesDataArray[whId];
-                    if (materialFilterIds.length > 0) {
-                        items = items.filter(item => materialFilterIds.includes(item.materialId));
-                    }
+                    let items = warehousesDataArray[whId].filter(item => {
+                        if (materialFilterIds.length > 0 && !materialFilterIds.includes(item.materialId)) return false;
+                        return (window.materials || []).some(m => m.id === item.materialId);
+                    });
                     if (items.length === 0) return;
                     items = items.sort((a, b) => {
                         const matA = window.materials.find(m => m.id === a.materialId);
@@ -9102,9 +10041,15 @@
                         const codeB = (matB?.code || '').toString().toLowerCase();
                         return codeA.localeCompare(codeB, 'ar');
                     });
+                    const rowUnits = items.map(item => {
+                        const material = window.materials.find(m => m.id === item.materialId);
+                        return item.unit || material?.unit || '';
+                    });
+                    const distinctUnits = [...new Set(rowUnits.filter(Boolean))];
+                    const canSumTotals = distinctUnits.length <= 1;
                     
                     html += `
-                        <div style="margin-bottom: 30px;">
+                        <div class="report-sheet">
                             <h4 style="color: #667eea; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #667eea;">
                                 المستودع: ${warehouse ? warehouse.name : whId}
                             </h4>
@@ -9133,49 +10078,47 @@
                     
                     items.forEach((item, index) => {
                         const material = window.materials.find(m => m.id === item.materialId);
-                        if (material) {
-                            const received = parseFloat(item.received) || 0;
-                            const delivered = parseFloat(item.delivered) || 0;
-                            const returned = parseFloat(item.returned) || 0;
-                            const currentUsable = parseFloat(item.currentUsable) || 0;
-                            const currentDamaged = parseFloat(item.currentDamaged) || 0;
-                            const usableStyle = currentUsable < 0 ? 'color: red; font-weight: bold;' : (currentUsable === 0 ? 'color: #999;' : 'color: #27ae60; font-weight: bold;');
-                            const damagedStyle = currentDamaged < 0 ? 'color: red; font-weight: bold;' : (currentDamaged === 0 ? 'color: #999;' : 'color: #e74c3c; font-weight: bold;');
-                            
-                            html += `
-                                <tr>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${index + 1}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${material.code || '-'}</td>
-                                    <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${material.name}</td>
-                                    <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${material.secondName || '-'}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #27ae60; font-weight: bold;">${received.toFixed(3)}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #e74c3c; font-weight: bold;">${delivered.toFixed(3)}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #f39c12; font-weight: bold;">${returned.toFixed(3)}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; ${usableStyle}">${currentUsable.toFixed(3)}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd; ${damagedStyle}">${currentDamaged.toFixed(3)}</td>
-                                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${item.unit || material.unit || '-'}</td>
-                                </tr>
-                            `;
-                        }
+                        const received = qtyOf(item.received);
+                        const delivered = qtyOf(item.delivered);
+                        const returned = qtyOf(item.returned);
+                        const currentUsable = qtyOf(item.currentUsable);
+                        const currentDamaged = qtyOf(item.currentDamaged);
+                        const usableStyle = currentUsable < 0 ? 'color: red; font-weight: bold;' : (currentUsable === 0 ? 'color: #999;' : 'color: #27ae60; font-weight: bold;');
+                        const damagedStyle = currentDamaged < 0 ? 'color: red; font-weight: bold;' : (currentDamaged === 0 ? 'color: #999;' : 'color: #e74c3c; font-weight: bold;');
+                        
+                        html += `
+                            <tr>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${index + 1}</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${material.code || '-'}</td>
+                                <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${material.name}</td>
+                                <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${material.secondName || '-'}</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #27ae60; font-weight: bold;">${received.toFixed(3)}</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #e74c3c; font-weight: bold;">${delivered.toFixed(3)}</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #f39c12; font-weight: bold;">${returned.toFixed(3)}</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; ${usableStyle}">${currentUsable.toFixed(3)}</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; ${damagedStyle}">${currentDamaged.toFixed(3)}</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${item.unit || material.unit || '-'}</td>
+                            </tr>
+                        `;
                     });
                     
-                    // Calculate totals
-                    const totalReceived = items.reduce((sum, item) => sum + (parseFloat(item.received) || 0), 0);
-                    const totalDelivered = items.reduce((sum, item) => sum + (parseFloat(item.delivered) || 0), 0);
-                    const totalReturned = items.reduce((sum, item) => sum + (parseFloat(item.returned) || 0), 0);
-                    const totalCurrentUsable = items.reduce((sum, item) => sum + (parseFloat(item.currentUsable) || 0), 0);
-                    const totalCurrentDamaged = items.reduce((sum, item) => sum + (parseFloat(item.currentDamaged) || 0), 0);
+                    const totalReceived = items.reduce((sum, item) => sum + qtyOf(item.received), 0);
+                    const totalDelivered = items.reduce((sum, item) => sum + qtyOf(item.delivered), 0);
+                    const totalReturned = items.reduce((sum, item) => sum + qtyOf(item.returned), 0);
+                    const totalCurrentUsable = items.reduce((sum, item) => sum + qtyOf(item.currentUsable), 0);
+                    const totalCurrentDamaged = items.reduce((sum, item) => sum + qtyOf(item.currentDamaged), 0);
+                    const totalCell = (value) => canSumTotals ? value.toFixed(3) : '—';
                     
                     html += `
                                 </tbody>
                                 <tfoot>
                                     <tr style="background: #f8f9fa; font-weight: bold;">
-                                        <td colspan="4" style="padding: 10px; text-align: right; border: 1px solid #ddd;">الإجمالي:</td>
-                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #27ae60;">${totalReceived.toFixed(3)}</td>
-                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #e74c3c;">${totalDelivered.toFixed(3)}</td>
-                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #f39c12;">${totalReturned.toFixed(3)}</td>
-                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #27ae60;">${totalCurrentUsable.toFixed(3)}</td>
-                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #e74c3c;">${totalCurrentDamaged.toFixed(3)}</td>
+                                        <td colspan="4" style="padding: 10px; text-align: right; border: 1px solid #ddd;">${canSumTotals ? 'الإجمالي:' : 'الإجمالي غير متاح لوحدات مختلفة:'}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #27ae60;">${totalCell(totalReceived)}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #e74c3c;">${totalCell(totalDelivered)}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #f39c12;">${totalCell(totalReturned)}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #27ae60;">${totalCell(totalCurrentUsable)}</td>
+                                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #e74c3c;">${totalCell(totalCurrentDamaged)}</td>
                                         <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${items.length} مادة</td>
                                     </tr>
                                 </tfoot>
@@ -9193,6 +10136,9 @@
                 window.warehouseInventoryReportData = { warehousesData: warehousesDataArray, warehouseId };
             } catch (error) {
                 console.error('Error loading warehouse inventory report:', error);
+                if (token === window._warehouseReportToken && contentDiv) {
+                    contentDiv.innerHTML = '<p class="empty-note">تعذر تحميل تقرير الجرد. تحقق من الاتصال ثم أعد فتح الصفحة.</p>';
+                }
                 showAlert('خطأ في تحميل تقرير جرد المستودعات', 'error');
             }
         };
@@ -10363,76 +11309,98 @@
             }
         }
 
+        function permissionFlag(user, key) {
+            return user[key] === true || user[key] === 'true';
+        }
+
+        window.inferAccessRole = function(user) {
+            if (!user) return 'custom';
+            if (user.id === 'admin' || user.isAdmin || user.email === ADMIN_EMAIL) return 'manager';
+            if (user.accessRole) return user.accessRole;
+            const permissionType = user.permissionType || ((user.warehouses && user.warehouses.length > 0) ? 'custom' : 'full');
+            const manageKeys = ['canManageMaterials', 'canManageWarehouses', 'canManageWorkSites', 'canManageSuppliers', 'canManageUnits'];
+            const anyManage = manageKeys.some(key => permissionFlag(user, key));
+            const allManage = manageKeys.every(key => permissionFlag(user, key));
+            const opKeys = ['receiveAdd', 'receiveEdit', 'receiveDelete', 'deliverAdd', 'deliverEdit', 'deliverDelete', 'returnAdd', 'returnEdit', 'returnDelete'];
+            const allOps = opKeys.every(key => permissionFlag(user, key));
+            const noOps = opKeys.every(key => !permissionFlag(user, key));
+            const addEditOnly = ['receiveAdd', 'deliverAdd', 'returnAdd', 'receiveEdit', 'deliverEdit', 'returnEdit'].every(key => permissionFlag(user, key))
+                && ['receiveDelete', 'deliverDelete', 'returnDelete'].every(key => !permissionFlag(user, key))
+                && !anyManage;
+            if (permissionType === 'full' && allManage && allOps) return 'manager';
+            if (permissionType === 'full' && !anyManage && allOps) return 'supervisor';
+            if (permissionType === 'full' && !anyManage && noOps) return 'viewer';
+            if (addEditOnly) return 'clerk';
+            return 'custom';
+        };
+
         function displayUsers() {
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            
+            const roleLabels = {
+                manager: 'مدير',
+                supervisor: 'مشرف',
+                clerk: 'أمين عمليات',
+                viewer: 'عرض فقط',
+                custom: 'مخصص'
+            };
+
             window.users.forEach(user => {
                 const row = document.createElement('tr');
-                
-                // Check if this is the auto-created admin user
                 const isAutoAdmin = user.id === 'admin' || (user.email === ADMIN_EMAIL && !user.id);
-                
-                // Determine permission type
                 const permissionType = user.permissionType || (user.warehouses && user.warehouses.length > 0 ? 'custom' : 'full');
-                
-                // Get management permissions status
-                const canManageMaterials = user.canManageMaterials === true || user.canManageMaterials === 'true';
-                const canManageWarehouses = user.canManageWarehouses === true || user.canManageWarehouses === 'true';
-                const canManageWorkSites = user.canManageWorkSites === true || user.canManageWorkSites === 'true';
-                const canManageSuppliers = user.canManageSuppliers === true || user.canManageSuppliers === 'true';
-                const canManageUnits = user.canManageUnits === true || user.canManageUnits === 'true';
-                
-                // Build management permissions display
-                const managementPermissions = [];
-                if (canManageMaterials) managementPermissions.push('المواد');
-                if (canManageWarehouses) managementPermissions.push('المستودعات');
-                if (canManageWorkSites) managementPermissions.push('مواقع العمل');
-                if (canManageSuppliers) managementPermissions.push('المزودين');
-                if (canManageUnits) managementPermissions.push('الوحدات');
-                const managementDisplay = managementPermissions.length > 0 
-                    ? managementPermissions.join(', ') 
-                    : '<span style="color: #e74c3c;">لا توجد صلاحيات إدارة</span>';
-                
-                // Get warehouses and work sites names
-                let warehousesDisplay = '';
-                let workSitesDisplay = '';
-                let suppliersDisplay = '';
-                
-                if (isAutoAdmin || permissionType === 'full') {
-                    warehousesDisplay = '<span style="color: #27ae60; font-weight: bold;">صلاحية كاملة</span>';
-                    workSitesDisplay = '<span style="color: #27ae60; font-weight: bold;">صلاحية كاملة</span>';
-                    suppliersDisplay = '<span style="color: #27ae60; font-weight: bold;">صلاحية كاملة</span>';
-                } else {
-                    const warehousesNames = (user.warehouses || []).map(whId => {
-                        const wh = window.warehouses?.find(w => w.id === whId);
-                        return wh ? wh.name : whId;
-                    }).join(', ') || 'لا يوجد';
-                    
-                    const workSitesNames = (user.workSites || []).map(wsId => {
-                        const ws = window.workSites?.find(w => w.id === wsId);
-                        return ws ? ws.name : wsId;
-                    }).join(', ') || 'لا يوجد';
-                    
-                    const suppliersNames = (user.suppliers || []).map(supId => {
-                        const sup = window.suppliers?.find(s => s.id === supId);
-                        return sup ? sup.name : supId;
-                    }).join(', ') || 'لا يوجد';
-                    
-                    warehousesDisplay = warehousesNames;
-                    workSitesDisplay = workSitesNames;
-                    suppliersDisplay = suppliersNames;
+                const role = window.inferAccessRole(user);
+                const manageLabels = [];
+                if (isAutoAdmin || permissionFlag(user, 'canManageMaterials')) manageLabels.push('المواد');
+                if (isAutoAdmin || permissionFlag(user, 'canManageWarehouses')) manageLabels.push('المستودعات');
+                if (isAutoAdmin || permissionFlag(user, 'canManageWorkSites')) manageLabels.push('مواقع العمل');
+                if (isAutoAdmin || permissionFlag(user, 'canManageSuppliers')) manageLabels.push('المزودين');
+                if (isAutoAdmin || permissionFlag(user, 'canManageUnits')) manageLabels.push('الوحدات');
+                const managementDisplay = manageLabels.length
+                    ? manageLabels.map(label => `<span class="perm-badge">${label}</span>`).join('')
+                    : '<span class="perm-badge">اطلاع فقط</span>';
+                const reportsBadge = (isAutoAdmin || permissionType === 'full' || permissionFlag(user, 'canViewReports'))
+                    ? '<span class="perm-badge scope-full">التقارير</span>'
+                    : '';
+
+                let scopeDisplay = '<span class="perm-badge scope-full">كامل</span>';
+                if (!isAutoAdmin && permissionType !== 'full') {
+                    const names = (ids, list) => (ids || []).map(id => {
+                        const item = (list || []).find(entry => entry.id === id);
+                        return item ? item.name : id;
+                    });
+                    const warehouses = names(user.warehouses, window.warehouses);
+                    const groups = names(user.workSiteGroupIds, window.workSiteGroups);
+                    const sites = names(user.workSites, window.workSites);
+                    const suppliers = names(user.suppliers, window.suppliers);
+                    const bits = [];
+                    if (warehouses.length) bits.push(`مستودعات: ${warehouses.join('، ')}`);
+                    if (groups.length) bits.push(`مجموعات: ${groups.join('، ')}`);
+                    if (sites.length) bits.push(`مواقع: ${sites.join('، ')}`);
+                    if (suppliers.length) bits.push(`مزودون: ${suppliers.join('، ')}`);
+                    scopeDisplay = bits.length ? bits.join('<br>') : 'لم يُحدد نطاق';
                 }
-                
+
+                const opLine = (prefix, label) => {
+                    if (isAutoAdmin) return `<span class="perm-badge">${label}: إضافة · تعديل · حذف</span>`;
+                    const parts = [];
+                    if (permissionFlag(user, prefix + 'Add')) parts.push('إضافة');
+                    if (permissionFlag(user, prefix + 'Edit')) parts.push('تعديل');
+                    if (permissionFlag(user, prefix + 'Delete')) parts.push('حذف');
+                    return parts.length ? `<span class="perm-badge">${label}: ${parts.join(' · ')}</span>` : '';
+                };
+                const opsDisplay = [opLine('receive', 'استلام'), opLine('deliver', 'تسليم'), opLine('return', 'استرداد')].filter(Boolean).join(' ')
+                    || '<span class="perm-badge">بدون عمليات</span>';
+
                 row.innerHTML = `
-                    <td>${user.email}${isAutoAdmin ? ' <span style="color: #f39c12; font-weight: bold;">(مدير)</span>' : ''}</td>
-                    <td>${user.name || '-'}</td>
-                    <td>${warehousesDisplay}</td>
-                    <td>${workSitesDisplay}</td>
-                    <td style="font-size: 13px; max-width: 300px;">${isAutoAdmin ? '<span style="color: #27ae60; font-weight: bold;">جميع الصلاحيات</span>' : managementDisplay}</td>
+                    <td><div>${user.email}</div><div style="color:#64748b;font-size:13px;">${user.name || '—'}</div></td>
+                    <td><span class="perm-badge role-${role}">${roleLabels[role] || role}</span></td>
+                    <td>${scopeDisplay}</td>
+                    <td>${opsDisplay}</td>
+                    <td>${managementDisplay}${reportsBadge}</td>
                     <td>
-                        ${isAutoAdmin ? '<span style="color: #999; font-size: 12px;">لا يمكن تعديل أو حذف المدير</span>' : `
+                        ${isAutoAdmin ? '<span style="color: #999; font-size: 12px;">حساب المدير ثابت</span>' : `
                             <button class="btn btn-success btn-small" onclick="showUserModal('${user.id}')">تعديل</button>
                             <button class="btn btn-danger btn-small" onclick="deleteUser('${user.id}')">حذف</button>
                         `}
@@ -10459,6 +11427,56 @@
                 if (customSuppliersSection) customSuppliersSection.style.display = 'block';
             }
         };
+
+        window.switchPermTab = function(tab) {
+            document.querySelectorAll('.perm-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.permTab === tab);
+            });
+            document.querySelectorAll('.perm-panel').forEach(panel => {
+                panel.classList.toggle('active', panel.dataset.permPanel === tab);
+            });
+        };
+
+        window.markRoleCustom = function() {
+            if (window._applyingRole) return;
+            const custom = document.getElementById('roleCustom');
+            if (custom) custom.checked = true;
+        };
+
+        function setChecked(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.checked = value;
+        }
+
+        window.applyAccessRole = function(role) {
+            const roleInput = document.querySelector(`input[name="userAccessRole"][value="${role}"]`);
+            if (roleInput) roleInput.checked = true;
+            if (role === 'custom') return;
+            const presets = {
+                manager: { full: true, manage: true, add: true, edit: true, delete: true, reports: true },
+                supervisor: { full: true, manage: false, add: true, edit: true, delete: true, reports: true },
+                clerk: { full: false, manage: false, add: true, edit: true, delete: false, reports: false },
+                viewer: { full: true, manage: false, add: false, edit: false, delete: false, reports: true }
+            };
+            const preset = presets[role];
+            if (!preset) return;
+            window._applyingRole = true;
+            setChecked(preset.full ? 'permissionFull' : 'permissionCustom', true);
+            togglePermissionType();
+            ['userCanManageMaterials', 'userCanManageWarehouses', 'userCanManageWorkSites', 'userCanManageSuppliers', 'userCanManageUnits'].forEach(id => setChecked(id, preset.manage));
+            setChecked('userCanViewReports', preset.reports);
+            ['Receive', 'Deliver', 'Return'].forEach(op => {
+                setChecked('user' + op + 'Add', preset.add);
+                setChecked('user' + op + 'Edit', preset.edit);
+                setChecked('user' + op + 'Delete', preset.delete);
+            });
+            window._applyingRole = false;
+        };
+
+        function selectAccessRole(role) {
+            const roleInput = document.querySelector(`input[name="userAccessRole"][value="${role}"]`);
+            if (roleInput) roleInput.checked = true;
+        }
 
         window.showUserModal = async function(userId = null) {
             // Prevent editing admin user
@@ -10493,7 +11511,7 @@
                 checkbox.style.marginBottom = '8px';
                 checkbox.innerHTML = `
                     <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" value="${warehouse.id}" class="user-warehouse-checkbox" style="margin-left: 8px; width: 18px; height: 18px;">
+                        <input type="checkbox" value="${warehouse.id}" class="user-warehouse-checkbox" onchange="markRoleCustom()" style="margin-left: 8px; width: 18px; height: 18px;">
                         <span>${warehouse.name}</span>
                     </label>
                 `;
@@ -10509,7 +11527,7 @@
                     checkbox.style.marginBottom = '8px';
                     checkbox.innerHTML = `
                         <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" value="${grp.id}" class="user-worksite-group-checkbox" style="margin-left: 8px; width: 18px; height: 18px;">
+                            <input type="checkbox" value="${grp.id}" class="user-worksite-group-checkbox" onchange="markRoleCustom()" style="margin-left: 8px; width: 18px; height: 18px;">
                             <span>${grp.name}</span>
                         </label>
                     `;
@@ -10524,7 +11542,7 @@
                 checkbox.style.marginBottom = '8px';
                 checkbox.innerHTML = `
                     <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" value="${workSite.id}" class="user-worksite-checkbox" style="margin-left: 8px; width: 18px; height: 18px;">
+                        <input type="checkbox" value="${workSite.id}" class="user-worksite-checkbox" onchange="markRoleCustom()" style="margin-left: 8px; width: 18px; height: 18px;">
                         <span>${workSite.name}</span>
                     </label>
                 `;
@@ -10539,7 +11557,7 @@
                 checkbox.style.marginBottom = '8px';
                 checkbox.innerHTML = `
                     <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" value="${supplier.id}" class="user-supplier-checkbox" style="margin-left: 8px; width: 18px; height: 18px;">
+                        <input type="checkbox" value="${supplier.id}" class="user-supplier-checkbox" onchange="markRoleCustom()" style="margin-left: 8px; width: 18px; height: 18px;">
                         <span>${supplier.name}</span>
                     </label>
                 `;
@@ -10575,6 +11593,8 @@
                     const canManageWorkSites = user.canManageWorkSites === true || user.canManageWorkSites === 'true';
                     const canManageSuppliers = user.canManageSuppliers === true || user.canManageSuppliers === 'true';
                     const canManageUnits = user.canManageUnits === true || user.canManageUnits === 'true';
+                    const canViewReports = user.canViewReports === true || user.canViewReports === 'true' || ((user.permissionType || 'full') === 'full');
+                    setChecked('userCanViewReports', canViewReports);
                     
                     const materialsCheckbox = document.getElementById('userCanManageMaterials');
                     const warehousesCheckbox = document.getElementById('userCanManageWarehouses');
@@ -10607,6 +11627,8 @@
                     const rta = document.getElementById('userReturnAdd'); if (rta) rta.checked = returnAdd;
                     const rte = document.getElementById('userReturnEdit'); if (rte) rte.checked = returnEdit;
                     const rtd = document.getElementById('userReturnDelete'); if (rtd) rtd.checked = returnDelete;
+                    selectAccessRole(window.inferAccessRole(user));
+                    if (typeof switchPermTab === 'function') switchPermTab('scope');
                     
                     console.log('Setting management permissions in modal:', {
                         canManageMaterials,
@@ -10695,11 +11717,14 @@
                 document.getElementById('userCanManageWorkSites').checked = true;
                 document.getElementById('userCanManageSuppliers').checked = true;
                 document.getElementById('userCanManageUnits').checked = true;
+                document.getElementById('userCanViewReports').checked = true;
                 // Default operations permissions to false for new users
                 ['userReceiveAdd','userReceiveEdit','userReceiveDelete','userDeliverAdd','userDeliverEdit','userDeliverDelete','userReturnAdd','userReturnEdit','userReturnDelete'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.checked = false;
                 });
+                selectAccessRole('custom');
+                if (typeof switchPermTab === 'function') switchPermTab('scope');
             }
             
             modal.classList.add('active');
@@ -10716,6 +11741,7 @@
             const password = document.getElementById('userPassword').value;
             const name = document.getElementById('userName').value;
             const permissionType = document.querySelector('input[name="userPermissionType"]:checked')?.value || 'full';
+            const accessRole = document.querySelector('input[name="userAccessRole"]:checked')?.value || 'custom';
             
             // Get selected warehouses, work sites, work site groups, and suppliers based on permission type
             let selectedWarehouses = [];
@@ -10767,6 +11793,7 @@
             const canManageWorkSites = workSitesCheckbox ? workSitesCheckbox.checked === true : false;
             const canManageSuppliers = suppliersCheckbox ? suppliersCheckbox.checked === true : false;
             const canManageUnits = unitsCheckbox ? unitsCheckbox.checked === true : false;
+            const canViewReports = document.getElementById('userCanViewReports')?.checked === true;
             
             const receiveAdd = document.getElementById('userReceiveAdd')?.checked === true;
             const receiveEdit = document.getElementById('userReceiveEdit')?.checked === true;
@@ -10799,6 +11826,7 @@
                     // Update existing user
                     const userData = {
                         name: name,
+                        accessRole: accessRole,
                         permissionType: permissionType,
                         warehouses: selectedWarehouses,
                         workSites: selectedWorkSites,
@@ -10837,6 +11865,7 @@
                     const userRef = doc(db, 'users', window.editingUserId);
                     await updateDoc(userRef, {
                         name: name,
+                        accessRole: accessRole,
                         permissionType: permissionType,
                         warehouses: selectedWarehouses,
                         workSites: selectedWorkSites,
@@ -10847,6 +11876,7 @@
                         canManageWorkSites: Boolean(canManageWorkSites),
                         canManageSuppliers: Boolean(canManageSuppliers),
                         canManageUnits: Boolean(canManageUnits),
+                        canViewReports: Boolean(canViewReports),
                         receiveAdd: Boolean(receiveAdd),
                         receiveEdit: Boolean(receiveEdit),
                         receiveDelete: Boolean(receiveDelete),
@@ -10933,6 +11963,7 @@
                     const userData = {
                         email: email,
                         name: name,
+                        accessRole: accessRole,
                         permissionType: permissionType,
                         warehouses: selectedWarehouses,
                         workSites: selectedWorkSites,
@@ -10943,6 +11974,7 @@
                         canManageWorkSites: Boolean(canManageWorkSites),
                         canManageSuppliers: Boolean(canManageSuppliers),
                         canManageUnits: Boolean(canManageUnits),
+                        canViewReports: Boolean(canViewReports),
                         receiveAdd: Boolean(receiveAdd),
                         receiveEdit: Boolean(receiveEdit),
                         receiveDelete: Boolean(receiveDelete),
@@ -11114,6 +12146,7 @@
                     const canManageWorkSites = userData.canManageWorkSites !== undefined && (userData.canManageWorkSites === true || userData.canManageWorkSites === 'true');
                     const canManageSuppliers = userData.canManageSuppliers !== undefined && (userData.canManageSuppliers === true || userData.canManageSuppliers === 'true');
                     const canManageUnits = userData.canManageUnits !== undefined && (userData.canManageUnits === true || userData.canManageUnits === 'true');
+                    const canViewReports = userData.canViewReports === true || userData.canViewReports === 'true';
                     
                     const receiveAdd = userData.receiveAdd === true || userData.receiveAdd === 'true';
                     const receiveEdit = userData.receiveEdit === true || userData.receiveEdit === 'true';
@@ -11137,6 +12170,7 @@
                         canManageWorkSites: canManageWorkSites,
                         canManageSuppliers: canManageSuppliers,
                         canManageUnits: canManageUnits,
+                        canViewReports: canViewReports,
                         receiveAdd, receiveEdit, receiveDelete,
                         deliverAdd, deliverEdit, deliverDelete,
                         returnAdd, returnEdit, returnDelete
@@ -11156,6 +12190,7 @@
                         canManageWorkSites: true,
                         canManageSuppliers: true,
                         canManageUnits: true,
+                        canViewReports: true,
                         receiveAdd: true, receiveEdit: true, receiveDelete: true,
                         deliverAdd: true, deliverEdit: true, deliverDelete: true,
                         returnAdd: true, returnEdit: true, returnDelete: true
@@ -11522,6 +12557,19 @@
         
         // ========== ACTIVITY LOG SYSTEM ==========
         
+        function transactionActorFields(kind) {
+            const auth = window.firebaseAuth;
+            const currentUser = auth && auth.currentUser;
+            if (!currentUser) return {};
+            let name = currentUser.email;
+            const listed = (window.users || []).find(u => (u.email || '').toLowerCase() === (currentUser.email || '').toLowerCase());
+            if (listed && listed.name) name = listed.name;
+            if (kind === 'update') {
+                return { updatedByUid: currentUser.uid, updatedByEmail: currentUser.email, updatedByName: name };
+            }
+            return { createdByUid: currentUser.uid, createdByEmail: currentUser.email, createdByName: name };
+        }
+
         // Function to log user activities
         async function logActivity(action, entityType, entityId, entityName, changes = null, oldData = null) {
             try {
