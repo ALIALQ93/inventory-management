@@ -1156,6 +1156,8 @@
         [dir="ltr"] .report-card:nth-child(2) { border-left-color: var(--emerald); }
         [dir="rtl"] .report-card:nth-child(4) { border-right-color: var(--warning); }
         [dir="ltr"] .report-card:nth-child(4) { border-left-color: var(--warning); }
+        [dir="rtl"] .report-card:nth-child(5) { border-right-color: var(--primary-slate); }
+        [dir="ltr"] .report-card:nth-child(5) { border-left-color: var(--primary-slate); }
 
         .report-card h3 {
             font-family: var(--font-headline);
@@ -2122,6 +2124,11 @@
                             <p>العمليات التي سُجّلت فعلياً في يوم محدد، وليس حسب التاريخ المكتوب داخل العملية.</p>
                             <span class="btn btn-primary">فتح التقرير</span>
                         </button>
+                        <button type="button" class="report-card" onclick="showSection('reportDailyMovement')">
+                            <h3>إجمالي حركة المواد اليومي</h3>
+                            <p>مجموع استلام وتسليم واسترداد كل مادة في تاريخ العملية.</p>
+                            <span class="btn btn-primary">فتح التقرير</span>
+                        </button>
                     </div>
                 </div>
 
@@ -2262,6 +2269,32 @@
                     <div id="userWorkReportSummary" class="report-summary"></div>
                     <div id="userWorkReport">
                         <div id="userWorkReportContent"></div>
+                    </div>
+                </div>
+
+                <div id="reportDailyMovement" class="section">
+                    <div class="section-toolbar">
+                        <button type="button" class="btn btn-secondary" onclick="showSection('reports')">رجوع إلى التقارير</button>
+                        <button type="button" class="btn btn-info" onclick="printDailyMovementReport()">طباعة</button>
+                    </div>
+                    <h2 class="section-block-title">إجمالي حركة المواد اليومي</h2>
+                    <p class="section-subtitle">يُحسب اليوم من تاريخ العملية المكتوب. الرصيد قبل العمليات هو المتاح حتى نهاية اليوم السابق، والرصيد بعد العمليات = الرصيد قبل + المستلم − المسلم + المسترد القابل للاستخدام.</p>
+                    <div class="section-filters">
+                        <div class="form-group">
+                            <label>تاريخ العملية:</label>
+                            <input type="date" id="dailyMovementDate" onchange="if (window.scheduleDailyMovementReport) window.scheduleDailyMovementReport()">
+                        </div>
+                        <div class="form-group">
+                            <label>المستودع:</label>
+                            <select id="dailyMovementWarehouse" onchange="if (window.scheduleDailyMovementReport) window.scheduleDailyMovementReport()">
+                                <option value="">جميع المستودعات</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadDailyMovementReport()">عرض التقرير</button>
+                    </div>
+                    <div id="dailyMovementSummary" class="report-summary"></div>
+                    <div id="dailyMovementReport">
+                        <div id="dailyMovementReportContent"></div>
                     </div>
                 </div>
 
@@ -2938,7 +2971,7 @@
 
     <script>
         // عند كل نشر: ارفع هذا الرقم، ونفس الرقم في version.json
-        const APP_VERSION = '1.1.0';
+        const APP_VERSION = '1.2.1';
         window.APP_VERSION = APP_VERSION;
 
         document.querySelectorAll('[data-app-version]').forEach(function(el) {
@@ -3901,7 +3934,7 @@
             window.currentSection = sectionId;
             
             const hasFullPermissions = window.currentUserPermissions && (window.currentUserPermissions.isAdmin || window.currentUserPermissions.permissionType === 'full');
-            const reportSections = ['reports', 'reportWarehouse', 'reportWorkSite', 'reportMovement', 'reportUserWork'];
+            const reportSections = ['reports', 'reportWarehouse', 'reportWorkSite', 'reportMovement', 'reportUserWork', 'reportDailyMovement'];
             
             // التحقق من المخزون وصيانته: للمدير أو الصلاحية الكاملة فقط
             if (sectionId === 'inventoryVerification') {
@@ -3942,7 +3975,7 @@
                 item.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
-            const menuSection = ['reports', 'reportWarehouse', 'reportWorkSite', 'reportMovement', 'reportUserWork'].includes(sectionId) ? 'reports' : sectionId;
+            const menuSection = ['reports', 'reportWarehouse', 'reportWorkSite', 'reportMovement', 'reportUserWork', 'reportDailyMovement'].includes(sectionId) ? 'reports' : sectionId;
             const activeMenu = document.querySelector(`.menu-item[data-section="${menuSection}"]`);
             if (activeMenu) activeMenu.classList.add('active');
 
@@ -3951,7 +3984,8 @@
                 reportWarehouse: 'تقرير جرد المستودعات',
                 reportWorkSite: 'تقرير المواد المسلمة',
                 reportMovement: 'تقرير حركة المادة',
-                reportUserWork: 'تقرير عمل المستخدمين'
+                reportUserWork: 'تقرير عمل المستخدمين',
+                reportDailyMovement: 'إجمالي حركة المواد اليومي'
             };
             document.getElementById('pageTitle').textContent = reportTitles[sectionId] || window.t(sectionId) || sectionId;
 
@@ -3960,12 +3994,18 @@
                 loadDashboard();
             } else if (sectionId === 'inventory') {
                 loadInventory();
-            } else if (sectionId === 'reports' || sectionId === 'reportWarehouse' || sectionId === 'reportWorkSite' || sectionId === 'reportMovement' || sectionId === 'reportUserWork') {
+            } else if (sectionId === 'reports' || sectionId === 'reportWarehouse' || sectionId === 'reportWorkSite' || sectionId === 'reportMovement' || sectionId === 'reportUserWork' || sectionId === 'reportDailyMovement') {
                 const reportsReady = loadReportsSection();
                 if (sectionId === 'reportWarehouse') {
                     reportsReady.then(function() {
                         if (window.currentSection === 'reportWarehouse' && typeof window.loadWarehouseInventoryReport === 'function') {
                             window.loadWarehouseInventoryReport();
+                        }
+                    });
+                } else if (sectionId === 'reportDailyMovement') {
+                    reportsReady.then(function() {
+                        if (window.currentSection === 'reportDailyMovement' && typeof window.loadDailyMovementReport === 'function') {
+                            window.loadDailyMovementReport();
                         }
                     });
                 }
@@ -9460,6 +9500,25 @@
                     });
                     warehouseSelect.value = currentValue;
                 }
+
+                const dailyWarehouseSelect = document.getElementById('dailyMovementWarehouse');
+                if (dailyWarehouseSelect) {
+                    const currentDailyWarehouse = dailyWarehouseSelect.value;
+                    dailyWarehouseSelect.innerHTML = '<option value="">جميع المستودعات</option>';
+                    const dailyWarehouses = window.getFilteredWarehousesSync ? window.getFilteredWarehousesSync() : window.warehouses;
+                    dailyWarehouses.forEach(warehouse => {
+                        const option = document.createElement('option');
+                        option.value = warehouse.id;
+                        option.textContent = warehouse.name;
+                        dailyWarehouseSelect.appendChild(option);
+                    });
+                    dailyWarehouseSelect.value = currentDailyWarehouse;
+                }
+                const dailyMovementDate = document.getElementById('dailyMovementDate');
+                if (dailyMovementDate && !dailyMovementDate.value) {
+                    const now = new Date();
+                    dailyMovementDate.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                }
                 
                 // Populate work site select
                 const workSiteSelect = document.getElementById('workSiteReportSelect');
@@ -9740,6 +9799,230 @@
             printWindow.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>تقرير عمل المستخدمين</title>
                 <style>body{font-family:Arial,sans-serif;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right}tr.report-mismatch{background:#fff7ed}h1{font-size:20px}</style>
                 </head><body><h1>تقرير عمل المستخدمين — ${dateStr}</h1><p>حسب وقت التسجيل الفعلي في النظام.</p>${html}</body></html>`);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        };
+
+        function operationDayKey(value) {
+            if (!value) return '';
+            if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+            const date = timestampToDate(value);
+            if (!date) return '';
+            return date.getUTCFullYear() + '-' + String(date.getUTCMonth() + 1).padStart(2, '0') + '-' + String(date.getUTCDate()).padStart(2, '0');
+        }
+
+        window.scheduleDailyMovementReport = function() {
+            clearTimeout(window._dailyMovementTimer);
+            window._dailyMovementTimer = setTimeout(function() {
+                if (window.currentSection === 'reportDailyMovement') window.loadDailyMovementReport();
+            }, 250);
+        };
+
+        window.loadDailyMovementReport = async function() {
+            const summary = document.getElementById('dailyMovementSummary');
+            const content = document.getElementById('dailyMovementReportContent');
+            const dateStr = document.getElementById('dailyMovementDate')?.value || '';
+            const warehouseId = document.getElementById('dailyMovementWarehouse')?.value || '';
+            const token = (window._dailyMovementToken || 0) + 1;
+            window._dailyMovementToken = token;
+            window.dailyMovementReportHtml = '';
+            if (summary) summary.innerHTML = '';
+            if (content) content.innerHTML = '<p class="empty-note">جارٍ تجهيز إجمالي الحركة...</p>';
+            if (!dateStr) {
+                if (content) content.innerHTML = '<p class="empty-note">اختر تاريخ العملية.</p>';
+                return;
+            }
+            if (warehouseId && window.currentUserPermissions && typeof window.hasWarehouseAccess === 'function' && !window.hasWarehouseAccess(warehouseId)) {
+                if (content) content.innerHTML = '<p class="empty-note">لا توجد صلاحية لعرض حركة هذا المستودع.</p>';
+                return;
+            }
+            try {
+                if (!window.materials || window.materials.length === 0) await loadMaterials();
+                if (!window.warehouses || window.warehouses.length === 0) await loadWarehouses();
+                const { collection, getDocs, query, where, Timestamp } = window.firebaseCollections;
+                const db = window.firebaseDb;
+                const start = new Date(dateStr + 'T00:00:00.000Z');
+                const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+                let docs = [];
+                try {
+                    const snap = await getDocs(query(
+                        collection(db, 'transactions'),
+                        where('date', '<', Timestamp.fromDate(end))
+                    ));
+                    snap.forEach(item => docs.push({ id: item.id, ...item.data() }));
+                } catch (rangeError) {
+                    const snap = await getDocs(collection(db, 'transactions'));
+                    snap.forEach(item => docs.push({ id: item.id, ...item.data() }));
+                }
+                if (token !== window._dailyMovementToken) return;
+
+                const canSeeWarehouse = (id) => {
+                    if (!id) return false;
+                    if (warehouseId && id !== warehouseId) return false;
+                    if (window.currentUserPermissions && typeof window.hasWarehouseAccess === 'function' && !window.hasWarehouseAccess(id)) return false;
+                    return true;
+                };
+                const qtyOf = (value) => {
+                    const qty = parseFloat(value);
+                    return Number.isFinite(qty) ? qty : 0;
+                };
+                const totals = {};
+                const beforeBalances = {};
+                const counts = { receive: 0, deliver: 0, return: 0 };
+                const addBalance = (bucket, materialId, qty, unit) => {
+                    if (!bucket[materialId]) bucket[materialId] = { qty: 0, unit: unit || '' };
+                    bucket[materialId].qty += qty;
+                    if (!bucket[materialId].unit && unit) bucket[materialId].unit = unit;
+                };
+                docs.forEach(tx => {
+                    if (!canSeeWarehouse(tx.warehouseId)) return;
+                    const dayKey = operationDayKey(tx.date);
+                    if (!dayKey || dayKey > dateStr) return;
+                    if (tx.type !== 'receive' && tx.type !== 'deliver' && tx.type !== 'return') return;
+                    const isSelectedDay = dayKey === dateStr;
+                    if (isSelectedDay) counts[tx.type] += 1;
+                    (tx.items || []).forEach(item => {
+                        const materialId = item.materialId;
+                        if (!materialId) return;
+                        const qty = qtyOf(item.quantity);
+                        let usableChange = 0;
+                        if (tx.type === 'receive') usableChange = qty;
+                        else if (tx.type === 'deliver') usableChange = -qty;
+                        else if (item.status === 'قابل للاستخدام') usableChange = qty;
+                        if (!isSelectedDay) {
+                            addBalance(beforeBalances, materialId, usableChange, item.unit);
+                            return;
+                        }
+                        if (!totals[materialId]) {
+                            totals[materialId] = {
+                                materialId,
+                                received: 0,
+                                delivered: 0,
+                                returnedUsable: 0,
+                                returnedDamaged: 0,
+                                unit: item.unit || ''
+                            };
+                        }
+                        if (tx.type === 'receive') totals[materialId].received += qty;
+                        else if (tx.type === 'deliver') totals[materialId].delivered += qty;
+                        else if (item.status === 'قابل للاستخدام') totals[materialId].returnedUsable += qty;
+                        else if (item.status === 'تالف') totals[materialId].returnedDamaged += qty;
+                        if (!totals[materialId].unit && item.unit) totals[materialId].unit = item.unit;
+                    });
+                });
+
+                const rows = Object.values(totals).map(row => {
+                    const material = (window.materials || []).find(item => item.id === row.materialId);
+                    const before = beforeBalances[row.materialId]?.qty || 0;
+                    const net = row.received - row.delivered + row.returnedUsable;
+                    return {
+                        ...row,
+                        code: material?.code || '—',
+                        name: material?.name || 'مادة غير مسجلة',
+                        unit: row.unit || material?.unit || beforeBalances[row.materialId]?.unit || '—',
+                        before,
+                        net,
+                        after: before + net
+                    };
+                }).sort((a, b) => String(a.code).localeCompare(String(b.code), 'ar'));
+
+                if (summary) {
+                    summary.innerHTML = [
+                        ['استلام', counts.receive],
+                        ['تسليم', counts.deliver],
+                        ['استرداد', counts.return],
+                        ['مواد تحركت', rows.length]
+                    ].map(([label, value]) => `<div class="stat-card"><h3>${value}</h3><p>${label}</p></div>`).join('');
+                }
+                if (!content) return;
+                if (!rows.length) {
+                    content.innerHTML = '<p class="empty-note">لا توجد حركة مواد في هذا اليوم.</p>';
+                    return;
+                }
+                const units = [...new Set(rows.map(row => row.unit).filter(unit => unit && unit !== '—'))];
+                const canSum = units.length <= 1;
+                const totalCell = (value) => canSum ? value.toFixed(3) : '—';
+                const sum = (key) => rows.reduce((total, row) => total + row[key], 0);
+                const body = rows.map((row, index) => {
+                    const beforeStyle = row.before < 0 ? ' style="color:#ba1a1a;font-weight:700;"' : '';
+                    const afterStyle = row.after < 0 ? ' style="color:#ba1a1a;font-weight:700;"' : '';
+                    return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${row.code}</td>
+                        <td>${row.name}</td>
+                        <td>${row.unit}</td>
+                        <td${beforeStyle}>${row.before.toFixed(3)}</td>
+                        <td>${row.received.toFixed(3)}</td>
+                        <td>${row.delivered.toFixed(3)}</td>
+                        <td>${row.returnedUsable.toFixed(3)}</td>
+                        <td>${row.returnedDamaged.toFixed(3)}</td>
+                        <td>${row.net.toFixed(3)}</td>
+                        <td${afterStyle}>${row.after.toFixed(3)}</td>
+                    </tr>
+                `;
+                }).join('');
+                const warehouseName = warehouseId
+                    ? ((window.warehouses || []).find(item => item.id === warehouseId)?.name || '')
+                    : 'جميع المستودعات';
+                const table = `
+                    <div class="report-sheet">
+                        <h4 style="margin-bottom: 12px;">${dateStr} — ${warehouseName}</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>رمز المادة</th>
+                                    <th>المادة</th>
+                                    <th>الوحدة</th>
+                                    <th>الرصيد قبل العمليات</th>
+                                    <th>المستلمة</th>
+                                    <th>المسلمة</th>
+                                    <th>مسترد قابل للاستخدام</th>
+                                    <th>مسترد تالف</th>
+                                    <th>صافي اليوم</th>
+                                    <th>الرصيد بعد العمليات</th>
+                                </tr>
+                            </thead>
+                            <tbody>${body}</tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4">${canSum ? 'الإجمالي' : 'الإجمالي غير متاح لوحدات مختلفة'}</td>
+                                    <td>${totalCell(sum('before'))}</td>
+                                    <td>${totalCell(sum('received'))}</td>
+                                    <td>${totalCell(sum('delivered'))}</td>
+                                    <td>${totalCell(sum('returnedUsable'))}</td>
+                                    <td>${totalCell(sum('returnedDamaged'))}</td>
+                                    <td>${totalCell(sum('net'))}</td>
+                                    <td>${totalCell(sum('after'))}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+                content.innerHTML = table;
+                window.dailyMovementReportHtml = table;
+            } catch (error) {
+                console.error('Daily movement report error:', error);
+                if (token === window._dailyMovementToken && content) {
+                    content.innerHTML = '<p class="empty-note">تعذر تحميل إجمالي حركة المواد.</p>';
+                }
+                showAlert('تعذر تحميل إجمالي حركة المواد اليومي', 'error');
+            }
+        };
+
+        window.printDailyMovementReport = function() {
+            const html = window.dailyMovementReportHtml;
+            if (!html) {
+                showAlert('الرجاء توليد التقرير أولاً', 'error');
+                return;
+            }
+            const dateStr = document.getElementById('dailyMovementDate')?.value || '';
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>إجمالي حركة المواد اليومي</title>
+                <style>body{font-family:Arial,sans-serif;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:center}h1{font-size:20px}</style>
+                </head><body><h1>إجمالي حركة المواد اليومي — ${dateStr}</h1><p>الرصيد قبل العمليات حتى نهاية اليوم السابق. الرصيد بعد العمليات = الرصيد قبل + المستلم − المسلم + المسترد القابل للاستخدام.</p>${html}</body></html>`);
             printWindow.document.close();
             printWindow.focus();
             printWindow.print();
