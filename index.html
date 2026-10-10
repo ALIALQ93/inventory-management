@@ -1138,6 +1138,17 @@
 
         tr.report-mismatch { background: #fff7ed; }
 
+        tr.work-detail { display: none; }
+        tr.work-detail.open { display: table-row; }
+        .work-detail-box { padding: 8px 4px 12px; }
+        .work-detail-meta { margin-bottom: 8px; color: var(--on-surface-variant); font-size: 13px; }
+        .work-detail table { width: 100%; background: var(--surface-white); }
+        .work-detail th, .work-detail td { font-size: 13px; }
+
+        @media (max-width: 767px) {
+            .section table.design-table tr.work-detail.open { display: block; }
+        }
+
         .report-card {
             background: var(--surface-white);
             border: 1px solid var(--border-subtle);
@@ -2240,10 +2251,11 @@
                 <div id="reportUserWork" class="section">
                     <div class="section-toolbar">
                         <button type="button" class="btn btn-secondary" onclick="showSection('reports')">رجوع إلى التقارير</button>
+                        <button type="button" class="btn btn-secondary" id="userWorkDetailsToggle" onclick="toggleAllUserWorkDetails(this)">إظهار التفاصيل</button>
                         <button type="button" class="btn btn-info" onclick="printUserWorkReport()">طباعة</button>
                     </div>
                     <h2 class="section-block-title">تقرير عمل المستخدمين</h2>
-                    <p class="section-subtitle">يُحسب اليوم من وقت حفظ العملية في النظام. التاريخ الذي يكتبه المستخدم في نموذج العملية يظهر للمقارنة فقط، ولا يُستخدم في الفلتر.</p>
+                    <p class="section-subtitle">يُحسب اليوم من وقت حفظ العملية في النظام. اضغط «التفاصيل» لرؤية المواد داخل كل عملية.</p>
                     <div class="section-filters">
                         <div class="form-group">
                             <label>يوم التسجيل الفعلي:</label>
@@ -2971,7 +2983,7 @@
 
     <script>
         // عند كل نشر: ارفع هذا الرقم، ونفس الرقم في version.json
-        const APP_VERSION = '1.2.1';
+        const APP_VERSION = '1.2.2';
         window.APP_VERSION = APP_VERSION;
 
         document.querySelectorAll('[data-app-version]').forEach(function(el) {
@@ -3857,7 +3869,7 @@
 
         function refreshResponsiveTables() {
             document.querySelectorAll('.section table').forEach(table => {
-                if (table.closest('.report-sheet')) return;
+                if (table.closest('.report-sheet') || table.closest('.work-detail')) return;
                 if (!table.parentElement.classList.contains('table-wrapper')) {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'table-wrapper';
@@ -9696,6 +9708,19 @@
                 }
 
                 const typeLabels = { receive: 'استلام', deliver: 'تسليم', return: 'استرداد' };
+                const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                }[ch]));
+                const qtyOf = (value) => {
+                    const qty = parseFloat(value);
+                    return Number.isFinite(qty) ? qty : 0;
+                };
+                if ((!window.materials || !window.materials.length) && typeof loadMaterials === 'function') {
+                    try { await loadMaterials(); } catch (loadError) { console.warn(loadError); }
+                }
+                if ((!window.suppliers || !window.suppliers.length) && typeof loadSuppliers === 'function') {
+                    try { await loadSuppliers(); } catch (loadError) { console.warn(loadError); }
+                }
                 const lines = [];
                 transactions.forEach(tx => {
                     if (typeFilter !== 'all' && tx.type !== typeFilter) return;
@@ -9711,6 +9736,23 @@
                     const actualKey = localDayKey(workedAt);
                     const warehouse = (window.warehouses || []).find(item => item.id === tx.warehouseId)?.name || '';
                     const site = (window.workSites || []).find(item => item.id === tx.workSiteId)?.name || '';
+                    const supplier = (window.suppliers || []).find(item => item.id === tx.supplierId)?.name || '';
+                    const items = (Array.isArray(tx.items) ? tx.items : []).map(item => {
+                        const material = (window.materials || []).find(entry => entry.id === item.materialId);
+                        const enteredQty = item.enteredQuantity != null ? qtyOf(item.enteredQuantity) : qtyOf(item.quantity);
+                        const enteredUnit = item.enteredUnit || item.unit || material?.unit || '—';
+                        const baseQty = qtyOf(item.quantity);
+                        const baseUnit = item.unit || material?.unit || '—';
+                        const converted = item.enteredQuantity != null && item.enteredUnit && item.enteredUnit !== item.unit;
+                        return {
+                            code: material?.code || '—',
+                            name: item.materialName || material?.name || 'مادة غير مسجلة',
+                            qty: enteredQty.toFixed(3),
+                            unit: enteredUnit,
+                            base: converted ? baseQty.toFixed(3) + ' ' + baseUnit : '',
+                            status: item.status || ''
+                        };
+                    });
                     lines.push({
                         name,
                         email,
@@ -9718,7 +9760,11 @@
                         action: activity?.action === 'update' && actualKey !== localDayKey(created || workedAt) ? 'تعديل' : 'تسجيل',
                         number: tx.number || '—',
                         place: [warehouse, site].filter(Boolean).join(' ← ') || '—',
-                        count: Array.isArray(tx.items) ? tx.items.length : 0,
+                        supplier,
+                        reference: tx.supplierInvoice || tx.invoice || '',
+                        notes: tx.notes || '',
+                        items,
+                        count: items.length,
                         actual: window.formatDateTime(workedAt),
                         entered: entered ? window.formatDate(entered) : '—',
                         mismatch: !!(enteredKey && enteredKey !== actualKey)
@@ -9748,6 +9794,13 @@
                     window.userWorkReportHtml = '';
                     return;
                 }
+                const materialsLabel = (count) => {
+                    if (count === 0) return 'لا مواد';
+                    if (count === 1) return 'مادة واحدة';
+                    if (count === 2) return 'مادتان';
+                    if (count <= 10) return count + ' مواد';
+                    return count + ' مادة';
+                };
                 const table = `
                     <table class="design-table">
                         <thead>
@@ -9757,24 +9810,60 @@
                                 <th>النوع</th>
                                 <th>الرقم</th>
                                 <th>المكان</th>
-                                <th>عدد المواد</th>
+                                <th>المواد</th>
                                 <th>وقت التسجيل الفعلي</th>
                                 <th>التاريخ المكتوب</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${lines.map(line => `
+                            ${lines.map((line, index) => {
+                                const meta = [
+                                    line.supplier ? 'المزود: ' + line.supplier : '',
+                                    line.reference ? 'الإيصال: ' + line.reference : '',
+                                    line.notes ? 'ملاحظات: ' + line.notes : ''
+                                ].filter(Boolean).map(escapeHtml).join(' · ');
+                                const itemRows = line.items.length ? line.items.map(item => `
+                                    <tr>
+                                        <td>${escapeHtml(item.code)}</td>
+                                        <td>${escapeHtml(item.name)}</td>
+                                        <td>${escapeHtml(item.qty)}</td>
+                                        <td>${escapeHtml(item.unit)}</td>
+                                        <td>${escapeHtml(item.base || '—')}</td>
+                                        <td>${escapeHtml(item.status || '—')}</td>
+                                    </tr>
+                                `).join('') : '<tr><td colspan="6">لا توجد مواد مسجلة داخل العملية</td></tr>';
+                                return `
                                 <tr class="${line.mismatch ? 'report-mismatch' : ''}">
-                                    <td>${line.name}</td>
-                                    <td>${line.action}</td>
-                                    <td>${line.type}</td>
-                                    <td>${line.number}</td>
-                                    <td>${line.place}</td>
-                                    <td>${line.count}</td>
-                                    <td>${line.actual}</td>
-                                    <td>${line.entered}${line.mismatch ? ' · مختلف' : ''}</td>
+                                    <td>${escapeHtml(line.name)}</td>
+                                    <td>${escapeHtml(line.action)}</td>
+                                    <td>${escapeHtml(line.type)}</td>
+                                    <td>${escapeHtml(line.number)}</td>
+                                    <td>${escapeHtml(line.place)}</td>
+                                    <td><button type="button" class="btn btn-secondary btn-small" onclick="toggleUserWorkDetail(${index})">${materialsLabel(line.count)}</button></td>
+                                    <td>${escapeHtml(line.actual)}</td>
+                                    <td>${escapeHtml(line.entered)}${line.mismatch ? ' · مختلف' : ''}</td>
                                 </tr>
-                            `).join('')}
+                                <tr class="work-detail" id="userWorkDetail${index}">
+                                    <td colspan="8">
+                                        <div class="work-detail-box">
+                                            ${meta ? `<p class="work-detail-meta">${meta}</p>` : ''}
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th>رمز المادة</th>
+                                                        <th>المادة</th>
+                                                        <th>الكمية</th>
+                                                        <th>الوحدة</th>
+                                                        <th>بالوحدة الأساسية</th>
+                                                        <th>الحالة</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>${itemRows}</tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                            }).join('')}
                         </tbody>
                     </table>
                 `;
@@ -9788,6 +9877,18 @@
             }
         };
 
+        window.toggleUserWorkDetail = function(index) {
+            const row = document.getElementById('userWorkDetail' + index);
+            if (row) row.classList.toggle('open');
+        };
+
+        window.toggleAllUserWorkDetails = function(button) {
+            const rows = document.querySelectorAll('#userWorkReportContent tr.work-detail');
+            const shouldOpen = Array.from(rows).some(row => !row.classList.contains('open'));
+            rows.forEach(row => row.classList.toggle('open', shouldOpen));
+            if (button) button.textContent = shouldOpen ? 'إخفاء التفاصيل' : 'إظهار التفاصيل';
+        };
+
         window.printUserWorkReport = function() {
             const dateStr = document.getElementById('userWorkReportDate')?.value || '';
             const html = window.userWorkReportHtml;
@@ -9797,7 +9898,7 @@
             }
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>تقرير عمل المستخدمين</title>
-                <style>body{font-family:Arial,sans-serif;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right}tr.report-mismatch{background:#fff7ed}h1{font-size:20px}</style>
+                <style>body{font-family:Arial,sans-serif;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse;margin-bottom:8px}th,td{border:1px solid #ccc;padding:8px;text-align:right}tr.report-mismatch{background:#fff7ed}tr.work-detail{display:table-row}h1{font-size:20px}.work-detail-meta{margin:0 0 8px}</style>
                 </head><body><h1>تقرير عمل المستخدمين — ${dateStr}</h1><p>حسب وقت التسجيل الفعلي في النظام.</p>${html}</body></html>`);
             printWindow.document.close();
             printWindow.focus();
