@@ -2149,7 +2149,7 @@
                         <button type="button" class="btn btn-info" onclick="printWarehouseInventoryReport()">طباعة</button>
                     </div>
                     <h2 class="section-block-title">تقرير جرد المستودعات</h2>
-                    <p class="section-subtitle">يُعرض الجرد عند فتح الصفحة، ويتغير عند اختيار المستودع أو المادة.</p>
+                    <p class="section-subtitle">يُعرض الجرد عند فتح الصفحة، ويتغير عند اختيار المستودع أو المادة. خيار المواد السالبة يعرض الرصيد القابل للاستخدام الأقل من صفر فقط.</p>
                     <div class="section-filters">
                         <div class="form-group">
                             <label>المستودع:</label>
@@ -2169,6 +2169,10 @@
                                 </div>
                             </div>
                         </div>
+                        <label style="display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 700; color: var(--on-surface);">
+                            <input type="checkbox" id="warehouseReportNegativeOnly" onchange="if (window.scheduleWarehouseInventoryReport) window.scheduleWarehouseInventoryReport()">
+                            المواد السالبة فقط
+                        </label>
                         <button class="btn btn-primary" onclick="loadWarehouseInventoryReport()">عرض التقرير</button>
                     </div>
                     <div id="warehouseInventoryReport">
@@ -2983,7 +2987,7 @@
 
     <script>
         // عند كل نشر: ارفع هذا الرقم، ونفس الرقم في version.json
-        const APP_VERSION = '1.2.2';
+        const APP_VERSION = '1.2.3';
         window.APP_VERSION = APP_VERSION;
 
         document.querySelectorAll('[data-app-version]').forEach(function(el) {
@@ -6227,6 +6231,11 @@
                 showModalAlert('receiveModal', 'الرجاء إضافة مادة واحدة على الأقل', 'error');
                 return;
             }
+            const invalidReceive = items.find(item => !Number.isFinite(item.quantity) || item.quantity <= 0);
+            if (invalidReceive) {
+                showModalAlert('receiveModal', 'الكمية يجب أن تكون أكبر من صفر للمادة «' + (invalidReceive.materialName || '') + '»', 'error');
+                return;
+            }
 
             // Validate required fields
             const supplierId = document.getElementById('receiveSupplier').value;
@@ -6270,14 +6279,21 @@
                         oldData = oldReceiveDoc.data();
                         const whId = oldData.warehouseId;
                         if (oldData.items && oldData.items.length > 0 && typeof window.getComputedWarehouseBalances === 'function') {
-                            const balances = await window.getComputedWarehouseBalances(whId, null);
-                            for (const oldItem of oldData.items) {
-                                const mid = oldItem.materialId;
-                                const balance = (balances[mid] != null ? balances[mid] : 0);
-                                if (balance < 0) {
+                            const sameWarehouse = oldData.warehouseId === warehouseId;
+                            const balances = await window.getComputedWarehouseBalances(whId, window.editingReceiveId);
+                            const added = {};
+                            if (sameWarehouse) {
+                                items.forEach(item => {
+                                    added[item.materialId] = (added[item.materialId] || 0) + (Number(item.quantity) || 0);
+                                });
+                            }
+                            const materialIds = new Set(oldData.items.map(item => item.materialId));
+                            for (const mid of materialIds) {
+                                const projected = (balances[mid] != null ? balances[mid] : 0) + (added[mid] || 0);
+                                if (projected < -0.0005) {
                                     const mat = window.materials?.find(m => m.id === mid);
                                     const name = mat ? mat.name : mid;
-                                    showModalAlert('receiveModal', 'لا يمكن التعديل: الرصيد (استلامات + استلام حالي + مسترد - مسلم = ' + balance.toFixed(3) + ') يجب أن يكون صفر أو أكثر للمادة «' + name + '»', 'error');
+                                    showModalAlert('receiveModal', 'لا يمكن التعديل: الرصيد سيصبح ' + projected.toFixed(3) + ' للمادة «' + name + '». يجب أن يبقى صفراً أو أكثر.', 'error');
                                     return;
                                 }
                             }
@@ -7508,6 +7524,11 @@
                             baseQuantity = enteredQuantity / material.conversion;
                         }
                     }
+
+                    if (!Number.isFinite(baseQuantity) || baseQuantity <= 0) {
+                        validationError = `الكمية يجب أن تكون أكبر من صفر للمادة ${material.name}`;
+                        break;
+                    }
                     
                     // Accumulate quantity for this material (in case same material appears multiple times)
                     if (!materialQuantitiesMap[materialHidden.value]) {
@@ -7526,17 +7547,27 @@
                 }
             }
             
-            // Validate total quantities per material: المستلم + المسترد - المسلم - المسلم في الفاتورة الحالية >= 0
-            for (const materialId in materialQuantitiesMap) {
-                const totalQuantity = materialQuantitiesMap[materialId];
-                const material = window.materials.find(m => m.id === materialId);
-                
-                // المتوفر = المستلم + المسترد - المسلم (بدون الفاتورة الحالية عند التعديل، لأن loadWarehouseInventory يستدعي getComputedWarehouseBalances مع استبعادها)
-                let available = window.warehouseInventory[warehouseId]?.[materialId] || 0;
-                
-                if (totalQuantity > available) {
-                    validationError = `الكمية المطلوبة (${totalQuantity.toFixed(3)}) أكبر من المتوفر (${available.toFixed(3)}) للمادة ${material ? material.name : materialId}`;
-                    break;
+            // الرصيد القابل للاستخدام يُحسب من العمليات، مع استبعاد فاتورة التسليم الحالية عند التعديل
+            if (!validationError && typeof window.getComputedWarehouseBalances === 'function') {
+                const balances = await window.getComputedWarehouseBalances(warehouseId, window.editingDeliverId || null);
+                for (const materialId in materialQuantitiesMap) {
+                    const totalQuantity = materialQuantitiesMap[materialId];
+                    const material = window.materials.find(m => m.id === materialId);
+                    const available = balances[materialId] != null ? balances[materialId] : 0;
+                    if (totalQuantity - available > 0.0005) {
+                        validationError = `الكمية المطلوبة (${totalQuantity.toFixed(3)}) أكبر من المتوفر (${available.toFixed(3)}) للمادة ${material ? material.name : materialId}. لا يُسمح بالإخراج إذا أصبح الرصيد سالباً.`;
+                        break;
+                    }
+                }
+            } else if (!validationError) {
+                for (const materialId in materialQuantitiesMap) {
+                    const totalQuantity = materialQuantitiesMap[materialId];
+                    const material = window.materials.find(m => m.id === materialId);
+                    const available = window.warehouseInventory[warehouseId]?.[materialId] || 0;
+                    if (totalQuantity - available > 0.0005) {
+                        validationError = `الكمية المطلوبة (${totalQuantity.toFixed(3)}) أكبر من المتوفر (${available.toFixed(3)}) للمادة ${material ? material.name : materialId}. لا يُسمح بالإخراج إذا أصبح الرصيد سالباً.`;
+                        break;
+                    }
                 }
             }
             
@@ -8371,6 +8402,11 @@
                             baseQuantity = enteredQuantity / material.conversion;
                         }
                     }
+
+                    if (!Number.isFinite(baseQuantity) || baseQuantity <= 0) {
+                        validationError = `الكمية يجب أن تكون أكبر من صفر للمادة ${material.name}`;
+                        break;
+                    }
                     
                     // Accumulate quantity for this material (in case same material appears multiple times)
                     if (!materialQuantitiesMap[materialSelect.value]) {
@@ -8391,8 +8427,7 @@
                 }
             }
             
-            // Validate total quantities per material
-            for (const materialId in materialQuantitiesMap) {
+            if (!validationError) for (const materialId in materialQuantitiesMap) {
                 const totalQuantity = materialQuantitiesMap[materialId];
                 const material = window.materials.find(m => m.id === materialId);
                 
@@ -10410,12 +10445,15 @@
                     return (whA?.name || '').localeCompare(whB?.name || '');
                 });
                 
+                const negativeOnly = document.getElementById('warehouseReportNegativeOnly')?.checked === true;
                 let html = '';
                 sortedWarehouseIds.forEach(whId => {
                     const warehouse = window.warehouses.find(w => w.id === whId);
                     let items = warehousesDataArray[whId].filter(item => {
                         if (materialFilterIds.length > 0 && !materialFilterIds.includes(item.materialId)) return false;
-                        return (window.materials || []).some(m => m.id === item.materialId);
+                        if (!(window.materials || []).some(m => m.id === item.materialId)) return false;
+                        if (negativeOnly && !(qtyOf(item.currentUsable) < -0.0005)) return false;
+                        return true;
                     });
                     if (items.length === 0) return;
                     items = items.sort((a, b) => {
@@ -10512,7 +10550,10 @@
                 });
                 
                 if (!html) {
-                    contentDiv.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">لا توجد مواد تطابق الاختيار في المستودعات المحددة</p>';
+                    const emptyText = negativeOnly
+                        ? 'لا توجد مواد برصيد سالب في المستودعات المحددة'
+                        : 'لا توجد مواد تطابق الاختيار في المستودعات المحددة';
+                    contentDiv.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">' + emptyText + '</p>';
                 } else {
                     contentDiv.innerHTML = html;
                 }
