@@ -912,6 +912,39 @@
             min-width: min(100%, 220px);
         }
 
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: #fff;
+        }
+
+        .history-card h3 {
+            margin: 0 0 4px;
+            font-size: 15px;
+        }
+
+        .history-meta {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .history-card ul {
+            margin: 0;
+            padding-inline-start: 18px;
+        }
+
+        .history-card li {
+            margin: 4px 0;
+        }
+
         .login-screen {
             min-height: 100vh;
             display: grid;
@@ -1731,6 +1764,9 @@
                         <div class="menu-item" data-section="reports" onclick="showSection('reports', event)">
                             <i>📈</i><span class="menu-label">التقارير</span>
                         </div>
+                        <div class="menu-item" data-section="trash" onclick="showSection('trash', event)">
+                            <i>🗑️</i><span class="menu-label">سلة المحذوفات</span>
+                        </div>
                     </div>
                     <div class="nav-group" data-nav-group="admin">
                         <div class="nav-label" data-i18n="navAdmin">الإدارة</div>
@@ -2335,28 +2371,93 @@
                     </table>
                 </div>
 
-                <!-- Activity Log Section -->
-                <div id="activityLog" class="section">
+                <div id="trash" class="section">
                     <div class="section-toolbar">
-                        <p class="section-subtitle">سجل الإضافة والتعديل والحذف على بيانات النظام.</p>
-                        <div class="section-toolbar-actions">
-                            <select id="activityLogFilter" onchange="loadActivityLog()">
-                                <option value="all">جميع العمليات</option>
-                                <option value="create">إضافة</option>
-                                <option value="update">تعديل</option>
-                                <option value="delete">حذف</option>
-                            </select>
-                            <select id="activityLogEntityFilter" onchange="loadActivityLog()">
-                                <option value="all">جميع الكيانات</option>
-                                <option value="material">المواد</option>
-                                <option value="warehouse">المستودعات</option>
-                                <option value="workSite">مواقع العمل</option>
-                                <option value="supplier">المزودين</option>
-                                <option value="unit">الوحدات</option>
-                                <option value="user">المستخدمين</option>
+                        <p class="section-subtitle">عمليات الاستلام والتسليم والاسترداد المحذوفة. الاستعادة تعيد العملية وأثرها على المخزون إذا بقي الرصيد كافياً.</p>
+                        <button type="button" class="btn btn-secondary" onclick="loadTrash()">تحديث</button>
+                    </div>
+                    <div class="section-filters">
+                        <div class="form-group">
+                            <label>النوع</label>
+                            <select id="trashTypeFilter" onchange="loadTrash()">
+                                <option value="all">كل العمليات</option>
+                                <option value="receive">استلام</option>
+                                <option value="deliver">تسليم</option>
+                                <option value="return">استرداد</option>
                             </select>
                         </div>
                     </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>النوع</th>
+                                <th>الرقم</th>
+                                <th>تاريخ العملية</th>
+                                <th>المكان</th>
+                                <th>المواد</th>
+                                <th>حذفها</th>
+                                <th>وقت الحذف</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trashTableBody">
+                            <tr><td colspan="8" class="empty-note">جارٍ تحميل سلة المحذوفات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Activity Log Section -->
+                <div id="activityLog" class="section">
+                    <div class="section-toolbar">
+                        <p class="section-subtitle">سجل الإضافة والتعديل والحذف. صفِّ النتائج حسب الحدث، ونوع السجل، والمستخدم، والتاريخ.</p>
+                        <button type="button" class="btn btn-secondary" onclick="loadActivityLog()">تحديث</button>
+                    </div>
+                    <div class="section-filters">
+                        <div class="form-group">
+                            <label>الحدث</label>
+                            <select id="activityLogFilter" onchange="renderActivityLog()">
+                                <option value="all">كل الأحداث</option>
+                                <option value="create">إضافة</option>
+                                <option value="update">تعديل</option>
+                                <option value="delete">حذف</option>
+                                <option value="restore">استعادة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>السجل</label>
+                            <select id="activityLogEntityFilter" onchange="renderActivityLog()">
+                                <option value="all">كل السجلات</option>
+                                <option value="receive">استلام</option>
+                                <option value="deliver">تسليم</option>
+                                <option value="return">استرداد</option>
+                                <option value="material">المواد</option>
+                                <option value="warehouse">المستودعات</option>
+                                <option value="workSite">مواقع العمل</option>
+                                <option value="workSiteGroup">مجموعات المواقع</option>
+                                <option value="supplier">المزودون</option>
+                                <option value="unit">الوحدات</option>
+                                <option value="user">المستخدمون</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>المستخدم</label>
+                            <select id="activityLogUserFilter" onchange="renderActivityLog()">
+                                <option value="all">كل المستخدمين</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>من تاريخ</label>
+                            <input type="date" id="activityLogFrom" onchange="renderActivityLog()">
+                        </div>
+                        <div class="form-group">
+                            <label>إلى تاريخ</label>
+                            <input type="date" id="activityLogTo" onchange="renderActivityLog()">
+                        </div>
+                        <div class="search-box">
+                            <input type="text" id="activityLogSearch" placeholder="بحث في التفاصيل أو التغييرات" oninput="renderActivityLog()">
+                        </div>
+                    </div>
+                    <p id="activityLogCount" class="section-subtitle"></p>
                     <table>
                         <thead>
                             <tr>
@@ -2987,7 +3088,7 @@
 
     <script>
         // عند كل نشر: ارفع هذا الرقم، ونفس الرقم في version.json
-        const APP_VERSION = '1.2.3';
+        const APP_VERSION = '1.2.6';
         window.APP_VERSION = APP_VERSION;
 
         document.querySelectorAll('[data-app-version]').forEach(function(el) {
@@ -3370,6 +3471,7 @@
                 'reports': 'التقارير',
                 'users': 'إدارة المستخدمين',
                 'activityLog': 'سجل العمليات',
+                'trash': 'سلة المحذوفات',
                 'navHome': 'الرئيسية',
                 'navMaster': 'البيانات الأساسية',
                 'navOps': 'العمليات',
@@ -3495,6 +3597,7 @@
                 'reports': 'Reports',
                 'users': 'Users Management',
                 'activityLog': 'Activity Log',
+                'trash': 'Trash',
                 'navHome': 'Home',
                 'navMaster': 'Master Data',
                 'navOps': 'Operations',
@@ -3780,6 +3883,25 @@
             return !!(permissions.isAdmin || permissions.permissionType === 'full' || permissions.canViewReports === true);
         }
 
+        function userCanUseTrash() {
+            const permissions = window.currentUserPermissions;
+            if (!permissions) return false;
+            if (permissions.isAdmin || permissions.permissionType === 'full') return true;
+            return !!(permissions.receiveAdd || permissions.receiveEdit || permissions.receiveDelete
+                || permissions.deliverAdd || permissions.deliverEdit || permissions.deliverDelete
+                || permissions.returnAdd || permissions.returnEdit || permissions.returnDelete);
+        }
+
+        function canRestoreTransaction(type) {
+            const permissions = window.currentUserPermissions;
+            if (!permissions) return false;
+            if (permissions.isAdmin || permissions.permissionType === 'full') return true;
+            if (type === 'receive') return !!(permissions.receiveAdd || permissions.receiveDelete);
+            if (type === 'deliver') return !!(permissions.deliverAdd || permissions.deliverDelete);
+            if (type === 'return') return !!(permissions.returnAdd || permissions.returnDelete);
+            return false;
+        }
+
         function updateManagementButtonsVisibility() {
             if (!window.currentUserPermissions) {
                 console.log('No permissions loaded, hiding all management buttons');
@@ -3789,7 +3911,7 @@
                         btn.style.display = 'none';
                     }
                 });
-                ['inventoryVerification', 'reports', 'users', 'activityLog', 'workSiteGroups'].forEach(section => {
+                ['inventoryVerification', 'reports', 'users', 'activityLog', 'workSiteGroups', 'trash'].forEach(section => {
                     document.querySelectorAll(`.menu-item[data-section="${section}"]`).forEach(el => {
                         el.style.display = 'none';
                     });
@@ -3859,6 +3981,7 @@
             setMenuVisible('reports', userCanViewReports());
             setMenuVisible('users', hasFullPermissions);
             setMenuVisible('activityLog', hasFullPermissions);
+            setMenuVisible('trash', userCanUseTrash());
             setMenuVisible('workSiteGroups', isAdmin || hasFullPermissions || canManageWorkSites);
             document.querySelectorAll('.nav-group').forEach(group => {
                 const items = Array.from(group.querySelectorAll('.menu-item'));
@@ -3971,6 +4094,11 @@
                     checkActivityLogPassword();
                     return;
                 }
+            } else if (sectionId === 'trash') {
+                if (!userCanUseTrash()) {
+                    showAlert('ليس لديك صلاحية عرض سلة المحذوفات', 'error');
+                    return;
+                }
             } else if (reportSections.includes(sectionId)) {
                 if (!userCanViewReports()) {
                     showAlert('لا توجد صلاحية لعرض التقارير. اطلب من المدير تفعيل «عرض التقارير» أو منح صلاحية كاملة.', 'error');
@@ -4033,7 +4161,9 @@
                 loadReturns();
             } else if (sectionId === 'activityLog') {
                 await loadActivityLog();
-} else if (sectionId === 'workSiteGroups') {
+            } else if (sectionId === 'trash') {
+                await loadTrash();
+            } else if (sectionId === 'workSiteGroups') {
                 loadWorkSiteGroups();
             } else if (sectionId === 'inventoryVerification') {
                 loadInventoryVerificationSection();
@@ -5677,6 +5807,7 @@
                     const dateStr = window.formatDate(receive.date);
                     const actions = `
                         <button class="btn btn-success btn-small" onclick="viewReceiveDetails('${receive.id}')">عرض</button>
+                        <button class="btn btn-secondary btn-small" onclick="showTransactionHistory('${receive.id}')">السجل</button>
                         <button class="btn btn-info btn-small" onclick="printReceive('${receive.id}')">طباعة</button>
                         ${canEditReceive ? `<button class="btn btn-warning btn-small" onclick="editReceive('${receive.id}')">تعديل</button>` : ''}
                         ${canDeleteReceive ? `<button class="btn btn-danger btn-small" onclick="deleteReceive('${receive.id}')">حذف</button>` : ''}
@@ -6364,7 +6495,7 @@
                 showAlert('ليس لديك صلاحية حذف عمليات الاستلام', 'error');
                 return;
             }
-            if (!confirm('هل أنت متأكد من حذف عملية الاستلام هذه؟ سيتم إزالة المواد من المخزون.')) {
+            if (!confirm('هل أنت متأكد من حذف عملية الاستلام؟ ستنتقل إلى سلة المحذوفات ويمكن استعادتها.')) {
                 return;
             }
 
@@ -6397,6 +6528,8 @@
                     }
                 }
 
+                await archiveDeletedTransaction(receiveId, data);
+
                 // Reverse inventory changes (subtract quantities from inventory)
                 if (data.items) {
                     for (const item of data.items) {
@@ -6410,7 +6543,7 @@
                 // Delete transaction
                 await deleteDoc(doc(db, 'transactions', receiveId));
 
-                showAlert('تم حذف عملية الاستلام بنجاح', 'success');
+                showAlert('تم نقل عملية الاستلام إلى سلة المحذوفات', 'success');
                 await loadDashboard();
                 await loadInventory();
                 await loadReceives(); // Reload receives table
@@ -6578,6 +6711,7 @@
                     const dateStr = window.formatDate(deliver.date);
                     const actions = `
                         <button class="btn btn-success btn-small" onclick="viewDeliverDetails('${deliver.id}')">عرض</button>
+                        <button class="btn btn-secondary btn-small" onclick="showTransactionHistory('${deliver.id}')">السجل</button>
                         <button class="btn btn-info btn-small" onclick="printDeliver('${deliver.id}')">طباعة</button>
                         ${canEditDeliver ? `<button class="btn btn-warning btn-small" onclick="editDeliver('${deliver.id}')">تعديل</button>` : ''}
                         ${canDeleteDeliver ? `<button class="btn btn-danger btn-small" onclick="deleteDeliver('${deliver.id}')">حذف</button>` : ''}
@@ -6916,7 +7050,7 @@
                 showAlert('ليس لديك صلاحية حذف عمليات التسليم', 'error');
                 return;
             }
-            if (!confirm('هل أنت متأكد من حذف عملية التسليم هذه؟ سيتم إعادة المواد للمستودع وإزالتها من موقع العمل.')) {
+            if (!confirm('هل أنت متأكد من حذف عملية التسليم؟ ستنتقل إلى سلة المحذوفات ويمكن استعادتها.')) {
                 return;
             }
 
@@ -6933,6 +7067,8 @@
 
                 const data = deliverDoc.data();
 
+                await archiveDeletedTransaction(deliverId, data);
+
                 // Reverse inventory changes (return to warehouse, remove from work site)
                 if (data.items) {
                     for (const item of data.items) {
@@ -6947,7 +7083,7 @@
                 // Delete transaction
                 await deleteDoc(doc(db, 'transactions', deliverId));
 
-                showAlert('تم حذف عملية التسليم بنجاح', 'success');
+                showAlert('تم نقل عملية التسليم إلى سلة المحذوفات', 'success');
                 await loadDashboard();
                 await loadInventory();
                 await loadDelivers(); // Reload delivers table
@@ -7814,6 +7950,7 @@
                     const dateStr = window.formatDate(returnTrans.date);
                     const actions = `
                         <button class="btn btn-success btn-small" onclick="viewReturnDetails('${returnTrans.id}')">عرض</button>
+                        <button class="btn btn-secondary btn-small" onclick="showTransactionHistory('${returnTrans.id}')">السجل</button>
                         <button class="btn btn-info btn-small" onclick="printReturn('${returnTrans.id}')">طباعة</button>
                         ${canEditReturn ? `<button class="btn btn-warning btn-small" onclick="editReturn('${returnTrans.id}')">تعديل</button>` : ''}
                         ${canDeleteReturn ? `<button class="btn btn-danger btn-small" onclick="deleteReturn('${returnTrans.id}')">حذف</button>` : ''}
@@ -8600,7 +8737,7 @@
                 showAlert('ليس لديك صلاحية حذف عمليات الاسترداد', 'error');
                 return;
             }
-            if (!confirm('هل أنت متأكد من حذف عملية الاسترداد هذه؟ سيتم إعادة المواد لموقع العمل وإزالتها من المستودع.')) {
+            if (!confirm('هل أنت متأكد من حذف عملية الاسترداد؟ ستنتقل إلى سلة المحذوفات ويمكن استعادتها.')) {
                 return;
             }
 
@@ -8616,6 +8753,8 @@
                 }
 
                 const data = returnDoc.data();
+
+                await archiveDeletedTransaction(returnId, data);
 
                 // Reverse inventory changes (return to work site, remove from warehouse)
                 if (data.items) {
@@ -8633,13 +8772,233 @@
                 // Delete transaction
                 await deleteDoc(doc(db, 'transactions', returnId));
 
-                showAlert('تم حذف عملية الاسترداد بنجاح', 'success');
+                showAlert('تم نقل عملية الاسترداد إلى سلة المحذوفات', 'success');
                 await loadDashboard();
                 await loadInventory();
                 await loadReturns();
             } catch (error) {
                 console.error('Error deleting return:', error);
                 showAlert('خطأ في حذف عملية الاسترداد', 'error');
+            }
+        };
+
+        async function archiveDeletedTransaction(transactionId, data) {
+            const { doc, setDoc, Timestamp } = window.firebaseCollections;
+            const db = window.firebaseDb;
+            const actor = transactionActorFields('update');
+            const payload = { ...data };
+            delete payload.originalId;
+            delete payload.deletedAt;
+            delete payload.deletedByUid;
+            delete payload.deletedByEmail;
+            delete payload.deletedByName;
+            await setDoc(doc(db, 'trash', transactionId), {
+                ...payload,
+                originalId: transactionId,
+                deletedAt: Timestamp.now(),
+                deletedByUid: actor.updatedByUid || '',
+                deletedByEmail: actor.updatedByEmail || '',
+                deletedByName: actor.updatedByName || ''
+            });
+        }
+
+        function trashTransactionPayload(data) {
+            const payload = { ...data };
+            ['originalId', 'deletedAt', 'deletedByUid', 'deletedByEmail', 'deletedByName'].forEach(function(key) {
+                delete payload[key];
+            });
+            return payload;
+        }
+
+        function canSeeTrashedTransaction(data) {
+            if (!data) return false;
+            if (data.type === 'receive') {
+                return !!(window.hasWarehouseAccess && window.hasSupplierAccess
+                    && window.hasWarehouseAccess(data.warehouseId)
+                    && window.hasSupplierAccess(data.supplierId));
+            }
+            return !!(window.hasWarehouseAccess && window.hasWorkSiteAccess
+                && window.hasWarehouseAccess(data.warehouseId)
+                && window.hasWorkSiteAccess(data.workSiteId));
+        }
+
+        function trashPlaceLabel(data) {
+            const warehouse = (window.warehouses || []).find(item => item.id === data.warehouseId);
+            const workSite = (window.workSites || []).find(item => item.id === data.workSiteId);
+            const supplier = (window.suppliers || []).find(item => item.id === data.supplierId);
+            if (data.type === 'receive') return (supplier ? supplier.name : '-') + ' إلى ' + (warehouse ? warehouse.name : '-');
+            if (data.type === 'deliver') return (warehouse ? warehouse.name : '-') + ' إلى ' + (workSite ? workSite.name : '-');
+            return (workSite ? workSite.name : '-') + ' إلى ' + (warehouse ? warehouse.name : '-');
+        }
+
+        async function workSiteAvailableMap(workSiteId) {
+            const { collection, getDocs, query, where } = window.firebaseCollections;
+            const db = window.firebaseDb;
+            const delivered = {};
+            const returned = {};
+            const addItems = function(map, items) {
+                (items || []).forEach(function(item) {
+                    map[item.materialId] = (map[item.materialId] || 0) + (parseFloat(item.quantity) || 0);
+                });
+            };
+            const deliverSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'deliver'), where('workSiteId', '==', workSiteId)));
+            deliverSnap.forEach(function(docSnapshot) { addItems(delivered, docSnapshot.data().items); });
+            const returnSnap = await getDocs(query(collection(db, 'transactions'), where('type', '==', 'return'), where('workSiteId', '==', workSiteId)));
+            returnSnap.forEach(function(docSnapshot) { addItems(returned, docSnapshot.data().items); });
+            const available = {};
+            Object.keys(delivered).forEach(function(materialId) {
+                available[materialId] = (delivered[materialId] || 0) - (returned[materialId] || 0);
+            });
+            return available;
+        }
+
+        async function assertRestoreStock(data) {
+            const totals = {};
+            (data.items || []).forEach(function(item) {
+                totals[item.materialId] = (totals[item.materialId] || 0) + (parseFloat(item.quantity) || 0);
+            });
+            const materialName = function(materialId) {
+                const material = (window.materials || []).find(item => item.id === materialId);
+                return material ? material.name : materialId;
+            };
+            if (data.type === 'deliver' && typeof window.getComputedWarehouseBalances === 'function') {
+                const balances = await window.getComputedWarehouseBalances(data.warehouseId, null);
+                for (const materialId of Object.keys(totals)) {
+                    const available = balances[materialId] != null ? balances[materialId] : 0;
+                    if (totals[materialId] - available > 0.0005) {
+                        return 'لا يمكن الاستعادة: رصيد المستودع لا يكفي للمادة «' + materialName(materialId) + '». المتوفر ' + available.toFixed(3);
+                    }
+                }
+            }
+            if (data.type === 'return') {
+                const available = await workSiteAvailableMap(data.workSiteId);
+                for (const materialId of Object.keys(totals)) {
+                    const left = available[materialId] || 0;
+                    if (totals[materialId] - left > 0.0005) {
+                        return 'لا يمكن الاستعادة: الكمية في موقع العمل لا تكفي للمادة «' + materialName(materialId) + '». المتاح ' + left.toFixed(3);
+                    }
+                }
+            }
+            return '';
+        }
+
+        async function applyTransactionInventory(data, direction) {
+            const items = data.items || [];
+            if (data.type === 'receive') {
+                for (const item of items) {
+                    await updateInventory(data.warehouseId, 'warehouse', item.materialId, item.quantity, item.unit, direction === 'apply' ? 'add' : 'subtract');
+                }
+            } else if (data.type === 'deliver') {
+                for (const item of items) {
+                    await updateInventory(data.warehouseId, 'warehouse', item.materialId, item.quantity, item.unit, direction === 'apply' ? 'subtract' : 'add');
+                    await updateInventory(data.workSiteId, 'workSite', item.materialId, item.quantity, item.unit, direction === 'apply' ? 'add' : 'subtract');
+                }
+            } else if (data.type === 'return') {
+                for (const item of items) {
+                    await updateInventory(data.workSiteId, 'workSite', item.materialId, item.quantity, item.unit, direction === 'apply' ? 'subtract' : 'add');
+                    if (item.status === 'قابل للاستخدام') {
+                        await updateInventory(data.warehouseId, 'warehouse', item.materialId, item.quantity, item.unit, direction === 'apply' ? 'add' : 'subtract');
+                    }
+                }
+            }
+        }
+
+        window.loadTrash = async function() {
+            const tbody = document.getElementById('trashTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-note">جارٍ تحميل سلة المحذوفات...</td></tr>';
+            try {
+                if (!window.warehouses || window.warehouses.length === 0) await loadWarehouses();
+                if (!window.workSites || window.workSites.length === 0) await loadWorkSites();
+                if (!window.suppliers || window.suppliers.length === 0) await loadSuppliers();
+                if (!window.materials || window.materials.length === 0) await loadMaterials();
+                const { collection, getDocs } = window.firebaseCollections;
+                const snapshot = await getDocs(collection(window.firebaseDb, 'trash'));
+                const typeFilter = document.getElementById('trashTypeFilter')?.value || 'all';
+                const typeLabels = { receive: 'استلام', deliver: 'تسليم', return: 'استرداد' };
+                const rows = [];
+                snapshot.forEach(function(docSnapshot) {
+                    const data = docSnapshot.data();
+                    if (typeFilter !== 'all' && data.type !== typeFilter) return;
+                    if (!canSeeTrashedTransaction(data)) return;
+                    rows.push({ id: docSnapshot.id, ...data });
+                });
+                rows.sort(function(a, b) {
+                    return (timestampToDate(b.deletedAt)?.getTime() || 0) - (timestampToDate(a.deletedAt)?.getTime() || 0);
+                });
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-note">سلة المحذوفات فارغة</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = rows.map(function(row) {
+                    const names = (row.items || []).map(function(item) { return item.materialName || item.materialId; }).filter(Boolean);
+                    const materials = names.length > 3 ? names.slice(0, 3).join('، ') + ' +' + (names.length - 3) : (names.join('، ') || '-');
+                    const restoreButton = canRestoreTransaction(row.type)
+                        ? '<button class="btn btn-success btn-small" onclick="restoreDeletedTransaction(\'' + row.id + '\')">استعادة</button>'
+                        : '';
+                    return '<tr>' +
+                        '<td>' + escapeHtml(typeLabels[row.type] || row.type || '-') + '</td>' +
+                        '<td>' + escapeHtml(row.number || '-') + '</td>' +
+                        '<td>' + escapeHtml(window.formatDate(row.date)) + '</td>' +
+                        '<td>' + escapeHtml(trashPlaceLabel(row)) + '</td>' +
+                        '<td>' + escapeHtml(materials) + '</td>' +
+                        '<td>' + escapeHtml(row.deletedByName || row.deletedByEmail || '-') + '</td>' +
+                        '<td>' + escapeHtml(window.formatDateTime(row.deletedAt)) + '</td>' +
+                        '<td>' + restoreButton + '</td>' +
+                        '</tr>';
+                }).join('');
+            } catch (error) {
+                console.error('Error loading trash:', error);
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-note">تعذر تحميل سلة المحذوفات</td></tr>';
+            }
+        };
+
+        window.restoreDeletedTransaction = async function(transactionId) {
+            if (!confirm('هل تريد استعادة هذه العملية وإعادة أثرها على المخزون؟')) return;
+            try {
+                const { doc, getDoc, setDoc, deleteDoc } = window.firebaseCollections;
+                const db = window.firebaseDb;
+                const trashRef = doc(db, 'trash', transactionId);
+                const trashDoc = await getDoc(trashRef);
+                if (!trashDoc.exists()) {
+                    showAlert('العملية غير موجودة في سلة المحذوفات', 'error');
+                    return;
+                }
+                const data = trashDoc.data();
+                if (!canRestoreTransaction(data.type)) {
+                    showAlert('ليس لديك صلاحية استعادة هذا النوع من العمليات', 'error');
+                    return;
+                }
+                if (!canSeeTrashedTransaction(data)) {
+                    showAlert('ليست لديك صلاحية على مكان هذه العملية', 'error');
+                    return;
+                }
+                const existing = await getDoc(doc(db, 'transactions', transactionId));
+                if (existing.exists()) {
+                    showAlert('توجد عملية بنفس الرقم الداخلي. لا يمكن الاستعادة.', 'error');
+                    return;
+                }
+                const stockError = await assertRestoreStock(data);
+                if (stockError) {
+                    showAlert(stockError, 'error');
+                    return;
+                }
+                const payload = trashTransactionPayload(data);
+                await setDoc(doc(db, 'transactions', transactionId), payload);
+                await applyTransactionInventory(payload, 'apply');
+                await deleteDoc(trashRef);
+                const typeLabels = { receive: 'استلام', deliver: 'تسليم', return: 'استرداد' };
+                await logActivity('restore', 'transaction', transactionId, 'عملية ' + (typeLabels[payload.type] || '') + ' - ' + (payload.number || 'بدون رقم'), payload, null);
+                showAlert('تمت استعادة العملية', 'success');
+                await loadDashboard();
+                await loadInventory();
+                if (payload.type === 'receive') await loadReceives();
+                if (payload.type === 'deliver') await loadDelivers();
+                if (payload.type === 'return') await loadReturns();
+                await loadTrash();
+            } catch (error) {
+                console.error('Error restoring transaction:', error);
+                showAlert('خطأ في استعادة العملية', 'error');
             }
         };
 
@@ -12995,144 +13354,502 @@
             return { createdByUid: currentUser.uid, createdByEmail: currentUser.email, createdByName: name };
         }
 
-        // Function to log user activities
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+            });
+        }
+
+        function formatQtyText(value) {
+            const number = parseFloat(value);
+            return Number.isFinite(number) ? number.toFixed(3) : '-';
+        }
+
+        function lookupName(list, id) {
+            if (!id) return '-';
+            const found = (list || []).find(item => item.id === id);
+            return found ? found.name : String(id);
+        }
+
+        function fieldDisplay(key, value) {
+            if (value == null || value === '') return '-';
+            if (key === 'date') return window.formatDate(value);
+            if (key === 'supplierId') return lookupName(window.suppliers, value);
+            if (key === 'warehouseId') return lookupName(window.warehouses, value);
+            if (key === 'workSiteId') return lookupName(window.workSites, value);
+            return String(value);
+        }
+
+        function transactionFields(type) {
+            if (type === 'receive') {
+                return [
+                    ['date', 'التاريخ'],
+                    ['number', 'رقم الاستلام'],
+                    ['supplierInvoice', 'رقم إيصال المزود'],
+                    ['supplierId', 'المزود'],
+                    ['warehouseId', 'المستودع'],
+                    ['notes', 'الملاحظات']
+                ];
+            }
+            if (type === 'deliver') {
+                return [
+                    ['date', 'التاريخ'],
+                    ['number', 'رقم التسليم'],
+                    ['invoice', 'رقم الإيصال'],
+                    ['warehouseId', 'المستودع'],
+                    ['workSiteId', 'موقع العمل'],
+                    ['notes', 'الملاحظات']
+                ];
+            }
+            return [
+                ['date', 'التاريخ'],
+                ['number', 'رقم الاسترداد'],
+                ['invoice', 'رقم الإيصال'],
+                ['workSiteId', 'موقع العمل'],
+                ['warehouseId', 'المستودع'],
+                ['notes', 'الملاحظات']
+            ];
+        }
+
+        function materialLine(item) {
+            const name = item.materialName || item.materialId || 'مادة';
+            const entered = item.enteredQuantity != null ? item.enteredQuantity : item.quantity;
+            const enteredUnit = item.enteredUnit || item.unit || '';
+            const baseUnit = item.unit || '';
+            let text = name + ': ' + formatQtyText(entered) + (enteredUnit ? ' ' + enteredUnit : '');
+            if (enteredUnit && baseUnit && enteredUnit !== baseUnit && item.quantity != null) {
+                text += ' (' + formatQtyText(item.quantity) + ' ' + baseUnit + ')';
+            }
+            if (item.reason) text += '، السبب ' + item.reason;
+            if (item.status) text += '، الحالة ' + item.status;
+            return text;
+        }
+
+        function itemSignature(item) {
+            const entered = item.enteredQuantity != null ? item.enteredQuantity : item.quantity;
+            return [
+                item.materialId || '',
+                formatQtyText(entered),
+                item.enteredUnit || item.unit || '',
+                formatQtyText(item.quantity),
+                item.unit || '',
+                item.reason || '',
+                item.status || ''
+            ].join('|');
+        }
+
+        function transactionChangeLines(action, nextData, previousData) {
+            const data = nextData || previousData || {};
+            const type = data.type || (previousData && previousData.type) || '';
+            const fields = transactionFields(type);
+            if (action === 'create' || action === 'delete' || action === 'restore') {
+                const lines = [action === 'create' ? 'تم تسجيل العملية' : (action === 'restore' ? 'تمت استعادة العملية من سلة المحذوفات' : 'تم حذف العملية')];
+                fields.forEach(function(field) {
+                    const shown = fieldDisplay(field[0], data[field[0]]);
+                    if (shown !== '-') lines.push(field[1] + ': ' + shown);
+                });
+                (data.items || []).forEach(function(item) {
+                    lines.push(materialLine(item));
+                });
+                return lines;
+            }
+            const lines = [];
+            const before = previousData || {};
+            const after = nextData || {};
+            fields.forEach(function(field) {
+                const oldShown = fieldDisplay(field[0], before[field[0]]);
+                const newShown = fieldDisplay(field[0], after[field[0]]);
+                if (oldShown !== newShown) lines.push(field[1] + ': من ' + oldShown + ' إلى ' + newShown);
+            });
+            const oldItems = (before.items || []).map(function(item) { return { item: item, used: false }; });
+            const newItems = (after.items || []).map(function(item) { return { item: item, used: false }; });
+            newItems.forEach(function(entry) {
+                const match = oldItems.find(function(oldEntry) {
+                    return !oldEntry.used && itemSignature(oldEntry.item) === itemSignature(entry.item);
+                });
+                if (match) {
+                    match.used = true;
+                    entry.used = true;
+                }
+            });
+            newItems.forEach(function(entry) {
+                if (entry.used) return;
+                const match = oldItems.find(function(oldEntry) {
+                    return !oldEntry.used && oldEntry.item.materialId === entry.item.materialId;
+                });
+                if (match) {
+                    match.used = true;
+                    entry.used = true;
+                    lines.push('تعديل المادة ' + (entry.item.materialName || entry.item.materialId || '') + ': من ' + materialLine(match.item) + ' إلى ' + materialLine(entry.item));
+                }
+            });
+            oldItems.forEach(function(entry) {
+                if (!entry.used) lines.push('حذف مادة: ' + materialLine(entry.item));
+            });
+            newItems.forEach(function(entry) {
+                if (!entry.used) lines.push('إضافة مادة: ' + materialLine(entry.item));
+            });
+            if (lines.length === 0) lines.push('تم حفظ العملية بدون اختلاف في البيانات الظاهرة');
+            return lines;
+        }
+
+        function recordChangeLines(action, nextData, previousData) {
+            if (action === 'create') return ['تم إنشاء السجل'];
+            if (action === 'delete') return ['تم حذف السجل'];
+            const labels = {
+                name: 'الاسم', code: 'الرمز', secondName: 'الاسم الثاني', category: 'الفئة',
+                unit: 'الوحدة', subUnit: 'الوحدة الفرعية', conversion: 'التعادل', conversionType: 'نوع التعادل',
+                minStock: 'حد إعادة الطلب', description: 'الوصف', phone: 'الهاتف', email: 'البريد',
+                address: 'العنوان', location: 'الموقع', manager: 'المسؤول', status: 'الحالة', type: 'النوع',
+                permissionType: 'نوع الصلاحية', accessRole: 'الدور', canViewReports: 'عرض التقارير',
+                canManageMaterials: 'إدارة المواد', canManageWarehouses: 'إدارة المستودعات',
+                canManageWorkSites: 'إدارة مواقع العمل', canManageSuppliers: 'إدارة المزودين', canManageUnits: 'إدارة الوحدات',
+                receiveAdd: 'إضافة استلام', receiveEdit: 'تعديل استلام', receiveDelete: 'حذف استلام',
+                deliverAdd: 'إضافة تسليم', deliverEdit: 'تعديل تسليم', deliverDelete: 'حذف تسليم',
+                returnAdd: 'إضافة استرداد', returnEdit: 'تعديل استرداد', returnDelete: 'حذف استرداد'
+            };
+            const scopeKeys = {
+                warehouses: 'نطاق المستودعات',
+                workSites: 'نطاق مواقع العمل',
+                workSiteGroupIds: 'مجموعات مواقع العمل',
+                suppliers: 'نطاق المزودين'
+            };
+            const skip = new Set(['createdAt', 'updatedAt', 'createdByUid', 'createdByEmail', 'createdByName', 'updatedByUid', 'updatedByEmail', 'updatedByName', 'id', 'password', 'items']);
+            const before = previousData || {};
+            const after = nextData || {};
+            const keys = new Set(Object.keys(before).concat(Object.keys(after)));
+            const lines = [];
+            keys.forEach(function(key) {
+                if (skip.has(key)) return;
+                if (scopeKeys[key]) {
+                    if (JSON.stringify(before[key] || []) !== JSON.stringify(after[key] || [])) lines.push('تم تعديل ' + scopeKeys[key]);
+                    return;
+                }
+                const oldValue = before[key];
+                const newValue = after[key];
+                if (oldValue === newValue) return;
+                if ((oldValue && typeof oldValue === 'object') || (newValue && typeof newValue === 'object')) return;
+                const label = labels[key] || key;
+                const oldText = oldValue == null || oldValue === '' ? '-' : (typeof oldValue === 'boolean' ? (oldValue ? 'نعم' : 'لا') : String(oldValue));
+                const newText = newValue == null || newValue === '' ? '-' : (typeof newValue === 'boolean' ? (newValue ? 'نعم' : 'لا') : String(newValue));
+                if (oldText !== newText) lines.push(label + ': من ' + oldText + ' إلى ' + newText);
+            });
+            if (lines.length === 0) lines.push('تم حفظ السجل بدون اختلاف في البيانات الظاهرة');
+            return lines;
+        }
+
+        function activityKind(activity) {
+            if (activity.transactionType) return activity.transactionType;
+            if (activity.entityType === 'transaction') {
+                const name = activity.entityName || '';
+                if (name.indexOf('استلام') !== -1) return 'receive';
+                if (name.indexOf('تسليم') !== -1) return 'deliver';
+                if (name.indexOf('استرداد') !== -1) return 'return';
+                return 'transaction';
+            }
+            return activity.entityType || '';
+        }
+
+        function activityEntityLabel(kind) {
+            const labels = {
+                receive: 'استلام', deliver: 'تسليم', return: 'استرداد', transaction: 'عملية',
+                material: 'مادة', warehouse: 'مستودع', workSite: 'موقع عمل', workSiteGroup: 'مجموعة مواقع',
+                supplier: 'مزود', unit: 'وحدة', user: 'مستخدم'
+            };
+            return labels[kind] || kind || '-';
+        }
+
+        function activityActionLabel(action) {
+            if (action === 'create') return '<span style="color: #27ae60; font-weight: bold;">إضافة</span>';
+            if (action === 'update') return '<span style="color: #3498db; font-weight: bold;">تعديل</span>';
+            if (action === 'delete') return '<span style="color: #e74c3c; font-weight: bold;">حذف</span>';
+            if (action === 'restore') return '<span style="color: #0f766e; font-weight: bold;">استعادة</span>';
+            return escapeHtml(action || '-');
+        }
+
+        function activityLines(activity) {
+            const stored = Array.isArray(activity.changeLines) ? activity.changeLines.map(String).filter(Boolean) : [];
+            const raw = stored.length ? stored.join(' | ') : String(activity.changes || '');
+            if (!raw) return [];
+            if (raw.indexOf('Timestamp(') !== -1 || raw.indexOf('[object Object]') !== -1 || /^[A-Za-z0-9_]+:\s*"/.test(raw)) {
+                return humanizeLegacyChanges(raw);
+            }
+            if (stored.length) return stored;
+            return raw.split(' | ').map(function(line) { return line.trim(); }).filter(Boolean);
+        }
+
+        function humanizeLegacyChanges(text) {
+            const labels = {
+                date: 'التاريخ', number: 'الرقم', notes: 'الملاحظات', invoice: 'رقم الإيصال',
+                supplierInvoice: 'رقم إيصال المزود', supplierId: 'المزود', warehouseId: 'المستودع',
+                workSiteId: 'موقع العمل', name: 'الاسم', code: 'الرمز', secondName: 'الاسم الثاني',
+                category: 'الفئة', unit: 'الوحدة', subUnit: 'الوحدة الفرعية', conversion: 'التعادل',
+                conversionType: 'نوع التعادل', minStock: 'حد إعادة الطلب', description: 'الوصف',
+                phone: 'الهاتف', email: 'البريد', address: 'العنوان', location: 'الموقع',
+                manager: 'المسؤول', status: 'الحالة', type: 'النوع', reason: 'السبب', items: 'المواد',
+                permissionType: 'نوع الصلاحية', accessRole: 'الدور', canViewReports: 'عرض التقارير'
+            };
+            const skip = new Set(['createdAt', 'updatedAt', 'createdByUid', 'createdByEmail', 'createdByName', 'updatedByUid', 'updatedByEmail', 'updatedByName', 'id', 'password']);
+            const typeNames = { receive: 'استلام', deliver: 'تسليم', return: 'استرداد' };
+            const showValue = function(key, raw) {
+                const value = String(raw || '').trim();
+                if (!value || value === 'null' || value === 'undefined') return '-';
+                const stamp = value.match(/^Timestamp\(seconds=(\d+),\s*nanoseconds=(\d+)\)$/);
+                if (stamp) {
+                    const date = new Date(Number(stamp[1]) * 1000 + Math.floor(Number(stamp[2]) / 1000000));
+                    return key === 'date' ? window.formatDate(date) : window.formatDateTime(date);
+                }
+                if (key === 'supplierId') return lookupName(window.suppliers, value);
+                if (key === 'warehouseId') return lookupName(window.warehouses, value);
+                if (key === 'workSiteId') return lookupName(window.workSites, value);
+                if (key === 'type' && typeNames[value]) return typeNames[value];
+                if (value === 'true') return 'نعم';
+                if (value === 'false') return 'لا';
+                return value;
+            };
+            const lines = [];
+            String(text).split(' | ').forEach(function(part) {
+                const match = part.trim().match(/^([A-Za-z0-9_]+):\s*"(.*)"\s*→\s*"(.*)"$/);
+                if (!match || skip.has(match[1])) return;
+                const key = match[1];
+                if (key === 'items' || match[2].indexOf('[object Object]') !== -1 || match[3].indexOf('[object Object]') !== -1) {
+                    const oldCount = (match[2].match(/\[object Object\]/g) || []).length;
+                    const newCount = (match[3].match(/\[object Object\]/g) || []).length;
+                    if (oldCount !== newCount) lines.push('عدد المواد: من ' + oldCount + ' إلى ' + newCount);
+                    else if (match[2] !== match[3]) lines.push('تم تعديل المواد');
+                    return;
+                }
+                const before = showValue(key, match[2]);
+                const after = showValue(key, match[3]);
+                if (before === after) return;
+                lines.push((labels[key] || key) + ': من ' + before + ' إلى ' + after);
+            });
+            if (!lines.length) lines.push('تعديل بدون تفاصيل مقروءة');
+            return lines;
+        }
+
         async function logActivity(action, entityType, entityId, entityName, changes = null, oldData = null) {
             try {
                 const auth = window.firebaseAuth;
                 const currentUser = auth.currentUser;
                 if (!currentUser) return;
-                
+
                 const { addDoc, collection, Timestamp } = window.firebaseCollections;
                 const db = window.firebaseDb;
-                
-                // Get user name from users list
                 let userName = currentUser.email;
                 if (window.users) {
                     const user = window.users.find(u => u.email === currentUser.email);
-                    if (user && user.name) {
-                        userName = user.name;
-                    }
+                    if (user && user.name) userName = user.name;
                 }
-                
-                // Prepare changes description
-                let changesDescription = '';
-                if (action === 'update' && oldData && changes) {
-                    const changeList = [];
-                    for (const key in changes) {
-                        if (oldData[key] !== changes[key]) {
-                            changeList.push(`${key}: "${oldData[key]}" → "${changes[key]}"`);
-                        }
-                    }
-                    changesDescription = changeList.join(' | ');
-                } else if (action === 'create') {
-                    changesDescription = 'تم إنشاء السجل';
-                } else if (action === 'delete') {
-                    changesDescription = 'تم حذف السجل';
-                }
-                
+
+                const source = changes || oldData || {};
+                const lines = entityType === 'transaction'
+                    ? transactionChangeLines(action, changes, oldData)
+                    : recordChangeLines(action, changes, oldData);
                 const activityData = {
                     userId: currentUser.uid,
                     userEmail: currentUser.email,
                     userName: userName,
-                    action: action, // 'create', 'update', 'delete'
-                    entityType: entityType, // 'material', 'warehouse', 'workSite', 'supplier', 'unit', 'user'
+                    action: action,
+                    entityType: entityType,
                     entityId: entityId,
                     entityName: entityName,
-                    changes: changesDescription,
+                    changes: lines.join(' | '),
+                    changeLines: lines,
                     timestamp: Timestamp.now(),
                     createdAt: serverTimestamp()
                 };
-                
+                if (entityType === 'transaction' && source.type) activityData.transactionType = source.type;
+
                 await addDoc(collection(db, 'activityLog'), activityData);
             } catch (error) {
                 console.error('Error logging activity:', error);
-                // Don't show alert to user, just log to console
             }
         }
-        
-        // Load and display activity log
+
+        function fillActivityLogUsers(rows) {
+            const select = document.getElementById('activityLogUserFilter');
+            if (!select) return;
+            const current = select.value || 'all';
+            const users = new Map();
+            rows.forEach(function(activity) {
+                const key = (activity.userEmail || activity.userName || '').toLowerCase();
+                if (!key) return;
+                users.set(key, activity.userName || activity.userEmail);
+            });
+            const options = ['<option value="all">كل المستخدمين</option>'];
+            Array.from(users.entries()).sort(function(a, b) {
+                return String(a[1]).localeCompare(String(b[1]), 'ar');
+            }).forEach(function(entry) {
+                options.push('<option value="' + escapeHtml(entry[0]) + '">' + escapeHtml(entry[1]) + '</option>');
+            });
+            select.innerHTML = options.join('');
+            select.value = users.has(current) || current === 'all' ? current : 'all';
+        }
+
+        function renderActivityLog() {
+            const tbody = document.getElementById('activityLogTableBody');
+            const count = document.getElementById('activityLogCount');
+            if (!tbody) return;
+            const rows = window._activityLogCache || [];
+            const actionFilter = document.getElementById('activityLogFilter')?.value || 'all';
+            const entityFilter = document.getElementById('activityLogEntityFilter')?.value || 'all';
+            const userFilter = (document.getElementById('activityLogUserFilter')?.value || 'all').toLowerCase();
+            const from = document.getElementById('activityLogFrom')?.value || '';
+            const to = document.getElementById('activityLogTo')?.value || '';
+            const search = (document.getElementById('activityLogSearch')?.value || '').trim().toLowerCase();
+            if (from && to && from > to) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-note">تاريخ البداية بعد تاريخ النهاية</td></tr>';
+                if (count) count.textContent = '';
+                return;
+            }
+            const visible = rows.filter(function(activity) {
+                if (actionFilter !== 'all' && activity.action !== actionFilter) return false;
+                if (entityFilter !== 'all' && activityKind(activity) !== entityFilter) return false;
+                const userKey = (activity.userEmail || activity.userName || '').toLowerCase();
+                if (userFilter !== 'all' && userKey !== userFilter) return false;
+                const day = localDayKey(timestampToDate(activity.timestamp));
+                if (from && day && day < from) return false;
+                if (to && day && day > to) return false;
+                if (search) {
+                    const haystack = [activity.entityName, activity.changes].concat(activityLines(activity)).join(' ').toLowerCase();
+                    if (haystack.indexOf(search) === -1) return false;
+                }
+                return true;
+            });
+            if (count) count.textContent = 'يظهر ' + visible.length + ' من ' + rows.length;
+            if (visible.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-note">لا توجد عمليات مطابقة</td></tr>';
+                return;
+            }
+            tbody.innerHTML = visible.map(function(activity) {
+                const lines = activityLines(activity);
+                const changesHtml = lines.length
+                    ? lines.map(function(line) { return escapeHtml(line); }).join('<br>')
+                    : '-';
+                return '<tr>' +
+                    '<td>' + escapeHtml(window.formatDateTime(activity.timestamp)) + '</td>' +
+                    '<td>' + escapeHtml(activity.userName || activity.userEmail || '-') + '</td>' +
+                    '<td>' + activityActionLabel(activity.action) + '</td>' +
+                    '<td>' + escapeHtml(activityEntityLabel(activityKind(activity))) + '</td>' +
+                    '<td>' + escapeHtml(activity.entityName || '-') + '</td>' +
+                    '<td style="max-width: 420px; white-space: normal;">' + changesHtml + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
         async function loadActivityLog() {
             try {
                 const { collection, getDocs, query, orderBy } = window.firebaseCollections;
                 const db = window.firebaseDb;
-                
                 const tbody = document.getElementById('activityLogTableBody');
                 if (!tbody) return;
-                
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #999;">جارٍ تحميل سجل العمليات...</td></tr>';
-                
-                // Get filters
-                const actionFilter = document.getElementById('activityLogFilter')?.value || 'all';
-                const entityFilter = document.getElementById('activityLogEntityFilter')?.value || 'all';
-                
-                // Query activity log
-                let q = query(collection(db, 'activityLog'), orderBy('timestamp', 'desc'));
-                const snapshot = await getDocs(q);
-                
-                const activities = [];
-                snapshot.forEach((docSnapshot) => {
-                    const data = docSnapshot.data();
-                    
-                    // Apply filters
-                    if (actionFilter !== 'all' && data.action !== actionFilter) return;
-                    if (entityFilter !== 'all' && data.entityType !== entityFilter) return;
-                    
-                    activities.push({
-                        id: docSnapshot.id,
-                        ...data
-                    });
-                });
-                
-                tbody.innerHTML = '';
-                
-                if (activities.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #999;">لا توجد عمليات مسجلة</td></tr>';
-                    return;
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-note">جارٍ تحميل سجل العمليات...</td></tr>';
+                let snapshot;
+                try {
+                    snapshot = await getDocs(query(collection(db, 'activityLog'), orderBy('timestamp', 'desc')));
+                } catch (error) {
+                    snapshot = await getDocs(collection(db, 'activityLog'));
                 }
-                
-                activities.forEach(activity => {
-                    const row = document.createElement('tr');
-                    
-                    // Format date
-                    const date = activity.timestamp?.toDate ? activity.timestamp.toDate() : new Date(activity.timestamp);
-                    const dateStr = window.formatDateTime(activity.timestamp);
-                    
-                    // Action label
-                    const actionLabels = {
-                        'create': '<span style="color: #27ae60; font-weight: bold;">إضافة</span>',
-                        'update': '<span style="color: #3498db; font-weight: bold;">تعديل</span>',
-                        'delete': '<span style="color: #e74c3c; font-weight: bold;">حذف</span>'
-                    };
-                    
-                    // Entity type label
-                    const entityLabels = {
-                        'material': 'مادة',
-                        'warehouse': 'مستودع',
-                        'workSite': 'موقع عمل',
-                        'supplier': 'مزود',
-                        'unit': 'وحدة',
-                        'user': 'مستخدم'
-                    };
-                    
-                    row.innerHTML = `
-                        <td>${dateStr}</td>
-                        <td>${activity.userName || activity.userEmail}</td>
-                        <td>${actionLabels[activity.action] || activity.action}</td>
-                        <td>${entityLabels[activity.entityType] || activity.entityType}</td>
-                        <td>${activity.entityName || '-'}</td>
-                        <td style="max-width: 300px; word-wrap: break-word; font-size: 12px;">${activity.changes || '-'}</td>
-                    `;
-                    tbody.appendChild(row);
+                const activities = [];
+                snapshot.forEach(function(docSnapshot) {
+                    activities.push({ id: docSnapshot.id, ...docSnapshot.data() });
                 });
+                activities.sort(function(a, b) {
+                    const aTime = timestampToDate(a.timestamp)?.getTime() || 0;
+                    const bTime = timestampToDate(b.timestamp)?.getTime() || 0;
+                    return bTime - aTime;
+                });
+                window._activityLogCache = activities;
+                fillActivityLogUsers(activities);
+                renderActivityLog();
             } catch (error) {
                 console.error('Error loading activity log:', error);
                 const tbody = document.getElementById('activityLogTableBody');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">خطأ في تحميل سجل العمليات</td></tr>';
-                }
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="empty-note">خطأ في تحميل سجل العمليات</td></tr>';
             }
         }
-        
+
+        window.loadActivityLog = loadActivityLog;
+        window.renderActivityLog = renderActivityLog;
+
+        window.showTransactionHistory = async function(transactionId) {
+            const existing = document.getElementById('transactionHistoryModal');
+            if (existing) existing.remove();
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'transactionHistoryModal';
+            modal.innerHTML = '<div class="modal-content" style="max-width: 760px;">' +
+                '<div class="modal-header"><h2>سجل العملية</h2><button class="close" onclick="closeModal(\'transactionHistoryModal\')">&times;</button></div>' +
+                '<div class="modal-body" style="max-height: 70vh; overflow-y: auto;"><p class="empty-note">جارٍ تحميل السجل...</p></div>' +
+                '</div>';
+            document.body.appendChild(modal);
+            const body = modal.querySelector('.modal-body');
+            try {
+                const { collection, getDocs, query, where, doc, getDoc } = window.firebaseCollections;
+                const db = window.firebaseDb;
+                const [logSnapshot, transactionDoc] = await Promise.all([
+                    getDocs(query(collection(db, 'activityLog'), where('entityId', '==', transactionId))),
+                    getDoc(doc(db, 'transactions', transactionId))
+                ]);
+                const tx = transactionDoc.exists() ? transactionDoc.data() : null;
+                const typeLabels = { receive: 'استلام', deliver: 'تسليم', return: 'استرداد' };
+                const title = tx ? ('سجل ' + (typeLabels[tx.type] || 'العملية') + (tx.number ? ' ' + tx.number : '')) : 'سجل العملية';
+                modal.querySelector('h2').textContent = title;
+                const events = [];
+                logSnapshot.forEach(function(docSnapshot) {
+                    const data = docSnapshot.data();
+                    events.push({
+                        action: data.action,
+                        time: data.timestamp,
+                        user: data.userName || data.userEmail || 'غير معروف',
+                        lines: activityLines(data)
+                    });
+                });
+                const hasCreate = events.some(function(event) { return event.action === 'create'; });
+                const hasUpdate = events.some(function(event) { return event.action === 'update'; });
+                if (tx && !hasCreate && tx.createdAt) {
+                    events.push({
+                        action: 'create',
+                        time: tx.createdAt,
+                        user: tx.createdByName || tx.createdByEmail || 'غير معروف',
+                        lines: ['تسجيل العملية. تفاصيل المواد غير محفوظة في السجل.']
+                    });
+                }
+                if (tx && !hasUpdate && tx.updatedAt) {
+                    const created = timestampToDate(tx.createdAt);
+                    const updated = timestampToDate(tx.updatedAt);
+                    if (updated && (!created || updated.getTime() - created.getTime() > 1000)) {
+                        events.push({
+                            action: 'update',
+                            time: tx.updatedAt,
+                            user: tx.updatedByName || tx.updatedByEmail || 'غير معروف',
+                            lines: ['تعديل بدون تفاصيل']
+                        });
+                    }
+                }
+                events.sort(function(a, b) {
+                    return (timestampToDate(b.time)?.getTime() || 0) - (timestampToDate(a.time)?.getTime() || 0);
+                });
+                if (events.length === 0) {
+                    body.innerHTML = '<p class="empty-note">لا يوجد سجل لهذه العملية.</p>';
+                    return;
+                }
+                const actionNames = { create: 'تسجيل', update: 'تعديل', delete: 'حذف', restore: 'استعادة' };
+                body.innerHTML = '<div class="history-list">' + events.map(function(event) {
+                    const items = (event.lines.length ? event.lines : ['بدون تفاصيل']).map(function(line) {
+                        return '<li>' + escapeHtml(line) + '</li>';
+                    }).join('');
+                    return '<article class="history-card"><h3>' + escapeHtml(actionNames[event.action] || event.action || 'حدث') + '</h3>' +
+                        '<div class="history-meta">' + escapeHtml(event.user) + ' · ' + escapeHtml(window.formatDateTime(event.time)) + '</div>' +
+                        '<ul>' + items + '</ul></article>';
+                }).join('') + '</div>';
+            } catch (error) {
+                console.error('Error loading transaction history:', error);
+                body.innerHTML = '<p class="empty-note">تعذر تحميل سجل العملية.</p>';
+            }
+        };
+
         // Set today's date in date inputs and apply language on page load
         window.addEventListener('DOMContentLoaded', function() {
             initSidebarState();
