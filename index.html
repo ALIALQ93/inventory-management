@@ -3088,7 +3088,7 @@
 
     <script>
         // عند كل نشر: ارفع هذا الرقم، ونفس الرقم في version.json
-        const APP_VERSION = '1.2.6';
+        const APP_VERSION = '1.2.7';
         window.APP_VERSION = APP_VERSION;
 
         document.querySelectorAll('[data-app-version]').forEach(function(el) {
@@ -3224,9 +3224,8 @@
         window.firebaseCollections = { collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, setDoc, query, where, orderBy, Timestamp, serverTimestamp };
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 
-        // Admin credentials
+        // حساب المدير يُعرَّف بالبريد فقط. كلمة المرور تُدار من Firebase Console وليست في الصفحة.
         const ADMIN_EMAIL = 'ali.alqadre93@gmail.com';
-        const ADMIN_PASSWORD = 'Am9875321=9875321';
 
         // Global variables
         window.editingId = null;
@@ -3237,24 +3236,6 @@
         window.returnItems = [];
         window.warehouseInventory = {};
         window.workSiteInventory = {};
-
-        // Check and create admin user (optional - call manually if needed; not run on load to avoid 400 on GitHub Pages)
-        async function checkAndCreateAdmin() {
-            try {
-                try {
-                    await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-                    await signOut(auth);
-                    return true;
-                } catch (createError) {
-                    if (createError.code === 'auth/email-already-in-use') {
-                        return true;
-                    }
-                    return false;
-                }
-            } catch (error) {
-                return false;
-            }
-        }
 
         // Login function
         window.toggleLoginPassword = function() {
@@ -3425,8 +3406,6 @@
                 window.adminCheckAttempted = true;
             }
         });
-
-        window.checkAndCreateAdmin = checkAndCreateAdmin;
 
         // ========== LANGUAGE SUPPORT ==========
         window.currentLanguage = localStorage.getItem('appLanguage') || 'ar';
